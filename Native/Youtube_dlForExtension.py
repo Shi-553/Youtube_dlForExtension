@@ -286,7 +286,7 @@ def Update():
 
 
 def GetVersion():
-    receivedMessage["version"] = "1.1.0"
+    receivedMessage["version"] = "1.2.0"
     sendMessage(encodeMessage(receivedMessage))
 
 
