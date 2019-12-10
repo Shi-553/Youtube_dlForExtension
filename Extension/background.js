@@ -584,7 +584,7 @@ UpdateTabListener();
 
         const res = await SendNativePromise("GetVersion");
         //console.log(res);
-        const latestVersion = "1.1.0";
+        const latestVersion = "1.2.0";
         if (res.version != latestVersion) {
             await SendNativePromise("Update");
         }
