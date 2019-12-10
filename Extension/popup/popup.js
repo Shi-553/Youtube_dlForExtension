@@ -1,4 +1,5 @@
 
+    let switchProgressFlag = false;
 browser.runtime.sendMessage({ isOpen: true });
 
 window.addEventListener("load", async () => {
@@ -335,7 +336,6 @@ window.addEventListener("load", async () => {
         GetJson(true);
         ul.innerHTML = "";
     });
-    let switchProgressFlag = false;
     document.getElementById("switch").addEventListener("click", () => {
         ul.textContent = "";
         if (!switchProgressFlag) {

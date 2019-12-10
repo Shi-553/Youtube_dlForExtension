@@ -39,8 +39,12 @@ def urlToFilename(url):
 
 #JSONファイルに書き出す
 def writeJson(path,dictionary,isCacheRefresh):
-    if not isCacheRefresh and os.path.isfile(path):
+    if not isCacheRefresh and  os.path.isfile(path):
         return
+    #フォルダがないとき
+    dir =os.path.join(absDirectoryPath(), "JSONCache")
+    if not os.path.isdir(dir):
+        os.mkdir(dir)
     jsonString = json.dumps(dictionary)
     with open(path,"w") as f:
         f.write(jsonString)
@@ -72,11 +76,6 @@ def To_Youtube_dl(receivedMessage):
         writeJson(absPath,receivedMessage["json"],receivedMessage["isCacheRefresh"])
             
    # sendMessage(encodeMessage(receivedMessage))
-   #youtube dlの文字列を絶対パスにしておく
-   # absYoutube_dlPath=os.path.join(absDirectoryPath(), "youtube-dl")#.exe
-   #receivedMessage["command"]=
-   #receivedMessage["command"].replace("\"youtube-dl\"",absYoutube_dlPath)#
-   #"\""++"\""
 
     #dirがあれば置き換えと存在確認
     if "dir" in receivedMessage:
@@ -111,33 +110,36 @@ def To_Youtube_dl(receivedMessage):
                                 stdout = subprocess.PIPE,
                                 stderr = subprocess.STDOUT)
             
+
+        receivedMessage["status"] = "finishedDownload"
+        receivedMessage["returncode"] = proc.returncode
+        #出力をデコードして
+        if not receivedMessage["callbackString"] == "ReceiveDownload":
+            if proc.stdout is not None :
+                receivedMessage["stdout"] = proc.stdout.decode("cp932")#utf-8
+            else:
+                receivedMessage["stdout"] = ""
+        #sendMessage(encodeMessage(receivedMessage))
+
+        
+        #jsonがなくてできるならJSON化
+        if " -j " in receivedMessage["command"]:
+            try:
+                receivedMessage["returnJson"] = json.loads(receivedMessage["stdout"])
+                if not "json" in receivedMessage:
+                    absPath = os.path.join(absDirectoryPath(), "JSONCache\{}.json".format(urlToFilename(receivedMessage["url"])))
+                    writeJson(absPath,receivedMessage["returnJson"],receivedMessage["isCacheRefresh"])
+            except json.JSONDecodeError as e:
+                pass
+            
+        sendMessage(encodeMessage(receivedMessage))
+
     except json.JSONDecodeError as e:
+        sendMessage(encodeMessage(receivedMessage))
         receivedMessage["status"] = "error"
         receivedMessage["e"] = str(e)
         sendMessage(encodeMessage(receivedMessage))
         return
-
-    receivedMessage["status"] = "finishedDownload"
-    receivedMessage["returncode"] = proc.returncode
-    #出力をデコードして
-    if not receivedMessage["callbackString"] == "ReceiveDownload":
-        if proc.stdout is not None :
-            receivedMessage["stdout"] = proc.stdout.decode("cp932")#utf-8
-        else:
-            receivedMessage["stdout"] = ""
-    #sendMessage(encodeMessage(receivedMessage))
-
-        
-    #jsonがなくてできるならJSON化
-    if " -j " in receivedMessage["command"]:
-        try:
-            receivedMessage["returnJson"] = json.loads(receivedMessage["stdout"])
-            if not "json" in receivedMessage:
-                absPath = os.path.join(absDirectoryPath(), "JSONCache\{}.json".format(urlToFilename(receivedMessage["url"])))
-                writeJson(absPath,receivedMessage["returnJson"],receivedMessage["isCacheRefresh"])
-        except json.JSONDecodeError as e:
-            pass
-            
 
     #マージするとき拡張子が変わったらここ
     m = re.search("WARNING: Requested formats are incompatible for merge and will be merged into (.+?)\.", receivedMessage["stdout"])
@@ -291,16 +293,25 @@ def GetVersion():
 #youtube-dlの準備
 def InitYoutube_dl():
     if __file__ == "Youtube_dlForExtension.py":
-        subprocess.call([sys.executable, "-m", "pip", "install", "youtube-dl"])
+        subprocess.run([sys.executable, "-m", "pip", "install", "youtube-dl"],
+                                    stdout = subprocess.PIPE,
+                                    stderr = subprocess.STDOUT)
+
     elif __file__ == "Youtube_dlForExtension.exe":
         urllib.request.urlretrieve("https://youtube-dl.org/downloads/latest/youtube-dl.exe","youtube-dl.exe")
         
 
+#youtube-dlのアップデート
 def UpdateYoutube_dl():
     if __file__ == "Youtube_dlForExtension.py":
-        subprocess.call([sys.executable, "-m", "pip", "install","-U", "youtube-dl"])
+        subprocess.run([sys.executable, "-m", "pip", "install","-U", "youtube-dl"],
+                                    stdout = subprocess.PIPE,
+                                    stderr = subprocess.STDOUT)
+
     elif __file__ == "Youtube_dlForExtension.exe":
-        subprocess.run(["youtube-dl", "-U"])
+        subprocess.run(["youtube-dl", "-U"],
+                                    stdout = subprocess.PIPE,
+                                    stderr = subprocess.STDOUT)
 
 
 receivedMessage = getMessage()
@@ -330,7 +341,20 @@ if receivedMessage["name"] == "Update":
     Update()
     
 if receivedMessage["name"] == "UpdateYoutube_dl":
-    if (not os.path.exists("youtube-dl.exe")) and (not os.path.exists("youtube-dl.py")):
+    
+    #ディレクトリにないとき  exeならpipは見ない
+    if (not os.path.exists("youtube-dl.exe")) and __file__ == "Youtube_dlForExtension.exe":
         InitYoutube_dl()
+    
+    #pipにないとき
+    elif (subprocess.run([sys.executable, "-m", "pip", "show", "youtube-dl"],
+                                    stdout = subprocess.PIPE,
+                                    stderr = subprocess.STDOUT).returncode!=0):
+        InitYoutube_dl()
+
     else:
         UpdateYoutube_dl()
+
+
+receivedMessage["status"]="end"
+sendMessage(encodeMessage(receivedMessage))

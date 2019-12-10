@@ -1,3 +1,6 @@
+
+
+
 //browser.storage.local.clear();
 let isPopupOpen = false, switchProgressFlag = false;
 //ポップアップのスクリプトから
@@ -461,6 +464,9 @@ const ports = {
 };
 //ネイティブにメッセージを送る。前に同じコールバックのメッセージがあったらそのポートの接続切っておくおく
 const SendNative = (toSendName, message) => {
+    if (message == null)
+        message = {};
+
 
     try {
         const port = browser.runtime.connectNative("Youtube_dlForExtension");
@@ -570,15 +576,14 @@ const UpdateTabListener = async () => {
 
 UpdateTabListener();
 
-
-
 (async () => {
+    //youtube-dl アップデート
+     await SendNativePromise("UpdateYoutube_dl");
     try {
-        //youtube-dl アップデート
-        SendNativePromise("UpdateYoutube_dl");
+
 
         const res = await SendNativePromise("GetVersion");
-
+        //console.log(res);
         const latestVersion = "1.1.0";
         if (res.version != latestVersion) {
             await SendNativePromise("Update");
