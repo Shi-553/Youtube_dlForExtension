@@ -1,0 +1,66 @@
+body {
+    font-size:130%;
+}
+div{
+    margin-bottom:6px;
+    margin-top:6px;
+}
+#Youtube_dlCommandMain {
+    font-size: 130%;
+}
+#ffmpegCommand{
+    margin-bottom: 10px;
+    margin-top: 0px;
+
+}
+.directory {
+    width: 90vw;
+}
+#setOutExtension {
+    width: 50px;
+}
+#setAddOption {
+    width: 70%;
+}
+#setFilenameOption {
+    width: 70%;
+}
+#setOutputOption {
+    width: 70%;
+}
+#selectedPreset {
+    width: 25%;
+}
+#setUrls{
+    width:90vw;
+    height:100px;
+}
+.optionText {
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+#directorySelect {
+    margin-bottom: 15px;
+}
+.checkbox {
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+#setBackgroundImageLabel {
+    color:black;
+    font-weight:500;
+    font-size:90%;
+    padding-left:5px;
+    padding-right:5px;
+    padding-top:2px;
+    padding-bottom:2px;
+    border: 1px solid Gray;
+    background-color:  rgb(224, 224, 224);
+    margin-right:5px;
+}
+#setBackgroundImage {
+    height:0;
+}
+.block {
+    margin-top: 10px;
+}
