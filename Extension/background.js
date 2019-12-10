@@ -1,5 +1,5 @@
 //browser.storage.local.clear();
-let isPopupOpen = false, switchProgressFlag=false;
+let isPopupOpen = false, switchProgressFlag = false;
 //ポップアップのスクリプトから
 browser.runtime.onMessage.addListener(async (e) => {
     //console.log(e);
@@ -314,14 +314,14 @@ const Download = async e => {
 const progresss = {};
 const downloadMatchReg = /^\[download\]\s+(.+?)\s+of\s+(.+?)\s+at\s+(.+?)\s+ETA\s+(.+)$/;
 const ReceiveDownload = async (res, port) => {
-        console.log(res);
+    console.log(res);
     if (res.j != null && res.j == true) {
-        if (res.status != "finished" )
+        if (res.status != "finished")
             return;
         res.nextMessage.callback = ReceiveDownload;
         res.nextMessage.json = res.returnJson;
 
-        SendNative("To_Youtube_dl", res.nextMessage );
+        SendNative("To_Youtube_dl", res.nextMessage);
         return;
     }
     if (res.status == "Progress" && downloadMatchReg.test(res.stdout)) {
@@ -329,10 +329,10 @@ const ReceiveDownload = async (res, port) => {
         const matchs = res.stdout.match(downloadMatchReg);
         progresss[res.command] = {
             name: res.json._filename,
-            percent:matchs[1],
-            size:matchs[2],
-            speed:matchs[3],
-            ETA:matchs[4]
+            percent: matchs[1],
+            size: matchs[2],
+            speed: matchs[3],
+            ETA: matchs[4]
         };
         if (isPopupOpen) {
             browser.runtime.sendMessage({
@@ -461,43 +461,41 @@ const ports = {
 };
 //ネイティブにメッセージを送る。前に同じコールバックのメッセージがあったらそのポートの接続切っておくおく
 const SendNative = (toSendName, message) => {
-    if (message.callback == null) {
-        console.error(message);
-        return;
-    }
 
     try {
         const port = browser.runtime.connectNative("Youtube_dlForExtension");
 
-        message.callbackString = message.callback.name.toString();
+        if (message.callback != null) {
+            message.callbackString = message.callback.name.toString();
 
-        if (message.callbackString == "ReceiveDownload") {
-            if (ports["download"][message.command] != null)
-                ports["download"][message.command].port.disconnect();
+            if (message.callbackString == "ReceiveDownload") {
+                if (ports["download"][message.command] != null)
+                    ports["download"][message.command].port.disconnect();
 
-            ports["download"][message.command] = { port: port, message: message };
-            port.onMessage.addListener(res => ports["download"][message.command].message.callback(res, port));
+                ports["download"][message.command] = { port: port, message: message };
+                port.onMessage.addListener(res => ports["download"][message.command].message.callback(res, port));
 
-        } else if (message.callbackString == "ReceiveGetJson") {
-            if (ports["getJson"][message.command] != null)
-                ports["getJson"][message.command].port.disconnect();
+            } else if (message.callbackString == "ReceiveGetJson") {
+                if (ports["getJson"][message.command] != null)
+                    ports["getJson"][message.command].port.disconnect();
 
-            ports["getJson"][message.command] = { port: port, message: message };
-            port.onMessage.addListener(res => ports["getJson"][message.command].message.callback(res, port));
+                ports["getJson"][message.command] = { port: port, message: message };
+                port.onMessage.addListener(res => ports["getJson"][message.command].message.callback(res, port));
 
-        } else {
-            if (ports[message.callbackString] != null) {
-                ports[message.callbackString].port.disconnect();
+            } else {
+                if (ports[message.callbackString] != null) {
+                    ports[message.callbackString].port.disconnect();
+                }
+                ports[message.callbackString] = { port: port, message: message };
+                port.onMessage.addListener(res => ports[message.callbackString].message.callback(res, port));
             }
-            ports[message.callbackString] = { port: port, message: message };
-            port.onMessage.addListener(res => ports[message.callbackString].message.callback(res, port));
         }
 
         port.postMessage({
             name: toSendName,
             value: message
         });
-       // console.log(ports);
+        // console.log(ports);
     } catch (e) {
         //console.log(e);
         browser.notifications.create({
@@ -511,6 +509,8 @@ const SendNative = (toSendName, message) => {
 
 //プロミス版 await で繋げられるが複数回返せない
 const SendNativePromise = (toSendName, message) => {
+    if (message == null)
+        message = {};
     try {
         return browser.runtime.sendNativeMessage("Youtube_dlForExtension",
             {
@@ -528,7 +528,7 @@ const SendNativePromise = (toSendName, message) => {
     }
 }
 
-UpdateBrowserAction(false,null);
+UpdateBrowserAction(false, null);
 //タブ切り替え時
 browser.tabs.onActivated.addListener(async info => {
     const url = (await browser.tabs.get(info.tabId)).url;
@@ -571,26 +571,17 @@ const UpdateTabListener = async () => {
 UpdateTabListener();
 
 
-//youtube-dl アップデート
-const ReceiveUpdate = (res, port) => {
-    // console.log(res);
-    if (res.status != "finished")
-        return;
-    port.disconnect();
-}
-SendNative("To_Youtube_dl", { command: `youtube-dl  -U`, callback: ReceiveUpdate });
 
 (async () => {
     try {
-        const res = await SendNativePromise("GetVersion", {});
+        //youtube-dl アップデート
+        SendNativePromise("UpdateYoutube_dl");
+
+        const res = await SendNativePromise("GetVersion");
 
         const latestVersion = "1.1.0";
         if (res.version != latestVersion) {
-            const port = browser.runtime.connectNative("Youtube_dlForExtension");
-            port.postMessage({
-                name: "Update"
-            });
-            console.log("Update " + res.version + " to " + latestVersion);
+            await SendNativePromise("Update");
         }
     } catch (e) {
         if (/Native application tried to send a message/.test(e)) {

@@ -1,0 +1,7 @@
+{
+  "name": "Youtube_dlForExtension",
+  "description": "Youtube_dlForExtension",
+  "path": "Youtube_dlForExtension.bat",
+  "type": "stdio",
+  "allowed_extensions": [ "Youtube_dlForExtension@SHi" ]
+}

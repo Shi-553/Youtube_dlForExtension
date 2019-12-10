@@ -7,11 +7,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Python", "Python", "{D2E59EFA-FD9F-45FF-ACA5-CD3CE1432BAB}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\windows\64bit\Youtube_dlForExtension\RegistryDelete.bat = ..\..\windows\64bit\Youtube_dlForExtension\RegistryDelete.bat
-		..\..\windows\64bit\Youtube_dlForExtension\RegistrySet.bat = ..\..\windows\64bit\Youtube_dlForExtension\RegistrySet.bat
-		..\..\windows\64bit\Youtube_dlForExtension\youtube-dl.exe = ..\..\windows\64bit\Youtube_dlForExtension\youtube-dl.exe
-		..\..\windows\64bit\Youtube_dlForExtension\Youtube_dlForExtension.bat = ..\..\windows\64bit\Youtube_dlForExtension\Youtube_dlForExtension.bat
-		..\..\windows\64bit\Youtube_dlForExtension\Youtube_dlForExtension.json = ..\..\windows\64bit\Youtube_dlForExtension\Youtube_dlForExtension.json
+		Native\readme.txt = Native\readme.txt
+		Native\RegistryDelete.bat = Native\RegistryDelete.bat
+		Native\RegistrySet.bat = Native\RegistrySet.bat
+		Native\update.txt = Native\update.txt
+		Native\Youtube_dlForExtension.bat = Native\Youtube_dlForExtension.bat
+		Native\Youtube_dlForExtension.json = Native\Youtube_dlForExtension.json
 		Native_Win\Youtube_dlForExtension.py = Native_Win\Youtube_dlForExtension.py
 		Native_Win\Youtube_dlForExtensionUpdater.py = Native_Win\Youtube_dlForExtensionUpdater.py
 	EndProjectSection
