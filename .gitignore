@@ -260,3 +260,6 @@ paket-files/
 __pycache__/
 *.pyc
 /Native/JSONCache
+*.xcf
+/Extension/jsconfig.json
+/Extension/Youtube_dlForExtension.xpi
