@@ -101,6 +101,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         if (progresss != null && progresss[item.webpage_url + item.key] != null && (progresss[item.webpage_url + item.key].isDownloading == "Download" || progresss[item.webpage_url + item.key].isDownloading == "Wait")) {
             download.value = "Downloading...";
         } else {
+            download.addEventListener("contextmenu", e => e.preventDefault());
+            download.addEventListener("mousedown", Download);
             download.value = "Main/Select/Sub";
         }
         detail.appendChild(download);
@@ -216,11 +218,6 @@ window.addEventListener("DOMContentLoaded", async () => {
 
         filename.style.border = "1.5px solid blue";
         filename.addEventListener("change", e => item._filename = e.target.value);
-        console.log(progresss[item.webpage_url + item.key]);
-        if (progresss == null || progresss[item.webpage_url + item.key] == null || progresss[item.webpage_url + item.key].isDownloading != "Download" || progresss[item.webpage_url + item.key].isDownloading != "Wait") {
-            download.addEventListener("contextmenu", e => e.preventDefault());
-            download.addEventListener("mousedown", Download);
-        }
 
         revert.addEventListener("click", () => {
             ul.getElementsByClassName("addO")[0].checked = false;
