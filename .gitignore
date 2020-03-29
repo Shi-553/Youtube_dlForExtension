@@ -277,3 +277,5 @@ __pycache__/
 /Native/build
 /Native/Youtube_dlForExtensionUpdater.spec
 /Native/Youtube_dlForExtension.spec
+*.sln
+/Youtube_dlForExtension@SHi/jsconfig.json
