@@ -361,13 +361,15 @@ def Update():
     sendMessage(encodeMessage(receivedMessage))
 
 def GetVersion():
-    receivedMessage["version"] = "1.3.0"
+    receivedMessage["version"] = "1.3.1"
     sendMessage(encodeMessage(receivedMessage))
 
         
 
 #youtube-dlのアップデート
 def UpdateYoutube_dl():
+    receivedMessage["filename"] = myFilename
+
     #pyでyoutube-dlがない場合は勝手にインストールしてくれる
     if myFilename == "Youtube_dlForExtension.py":
         proc = subprocess.run(["py", "-m", "pip", "install","-U", "youtube-dl","--user"],
@@ -378,17 +380,17 @@ def UpdateYoutube_dl():
 
 
     #exeでyoutube-dlがない場合はダウンロード
-    try:
-        if myFilename == "Youtube_dlForExtension.exe":
+    if myFilename == "Youtube_dlForExtension.exe":
+        if os.path.isfile("youtube-dl.exe"):
             proc = subprocess.run(["youtube-dl", "-U"],
                                         stdout = subprocess.PIPE,
                                         stderr = subprocess.STDOUT)
             
             receivedMessage["stdout"] = proc.stdout.decode("cp932")#utf-8
 
-    except FileNotFoundError:
-        urllib.request.urlretrieve("https://youtube-dl.org/downloads/latest/youtube-dl.exe","youtube-dl.exe")
-        receivedMessage["stdout"] = "Download Youtube_dlForExtension.exe"
+        else:
+            urllib.request.urlretrieve("https://youtube-dl.org/downloads/latest/youtube-dl.exe","youtube-dl.exe")
+            receivedMessage["stdout"] = "Download Youtube_dlForExtension.exe"
 
 
     sendMessage(encodeMessage(receivedMessage))
