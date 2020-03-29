@@ -225,8 +225,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         revert.addEventListener("click", () => {
             ul.getElementsByClassName("addO")[0].checked = false;
             filename.style.border = "";
-            filename.value = item.option??"";
-            item._filename = item.option??"";
+            filename.value = item.option != null ? item.option : "";
+            item._filename = item.option != null ? item.option : "";
         });
         const format_ids = ul.getElementsByClassName("format_id");
         for (let format_id of format_ids) {
@@ -267,7 +267,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             textDir.style.fontSize = "80%";
             textDir.style.flexBasis = "5px";
             textDir.style.wordWrap = "break-word";
-            textDir.value = p.messageToSend?.dir + "\\" ?? "";
+            textDir.value = (p.messageToSend != null && p.messageToSend.dir != null) ? p.messageToSend.dir + "\\" : "";
             newItem.appendChild(textDir);
             newItem.appendChild(document.createElement("br"));
 
@@ -338,9 +338,9 @@ window.addEventListener("DOMContentLoaded", async () => {
         if (option.mainDownloadDirectory == null || option.subDownloadDirectory == null) {
             const userName = await browser.runtime.sendMessage({ isGetUserPofile: true });
             if (option.mainDownloadDirectory == null)
-                option.mainDownloadDirectory = userName+"\\Downloads";
+                option.mainDownloadDirectory = userName + "\\Downloads";
             if (option.subDownloadDirectory == null)
-                option.subDownloadDirectory = userName+"\\Videos";
+                option.subDownloadDirectory = userName + "\\Videos";
         }
         try {
             // console.log(url)

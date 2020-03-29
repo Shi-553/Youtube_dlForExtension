@@ -122,7 +122,8 @@ browser.runtime.onMessage.addListener(async (e) => {
     }
 
     if (e.isGetUserPofile) {
-        userPofile = userPofile ?? await SendNativePromise("GetUserPofile");
+        if (userPofile == null)
+            userPofile = await SendNativePromise("GetUserPofile");
         return userPofile;
 
     }
@@ -564,7 +565,12 @@ const ReceiveDownloadPrepare = async (res, port) => {
     //console.log(res);
     if (res.status != "finished")
         return;
-    NoticeDownloadStatus(res, false, "Prepare Download", res.returnJson?._filename ?? res.json?._filename ?? "");
+    let json = res.returnJson;
+    if (json == null)
+        json = res.json;
+    if (json == null)
+        json = { _filename: "" };
+    NoticeDownloadStatus(res, false, "Prepare Download", json._filename);
 
 
     res.messageToSend.json = res.returnJson;
