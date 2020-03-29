@@ -263,3 +263,17 @@ __pycache__/
 *.xcf
 /Extension/jsconfig.json
 /Extension/Youtube_dlForExtension.xpi
+*.zip
+/Youtube_dlForExtension@SHi/9c2b2890aa6bca7dcbb1b68571e6dd39.jpg
+/Youtube_dlForExtension@SHi/b492c5d2a70e8eec894ee73d7f834c22.jpg
+/Youtube_dlForExtension@SHi/壁紙aaa.jpg
+*.xpi
+/日本語.txt
+/others
+/windows
+/Native/ffprobe.exe
+/Native/ffmpeg.exe
+/Native/dist
+/Native/build
+/Native/Youtube_dlForExtensionUpdater.spec
+/Native/Youtube_dlForExtension.spec

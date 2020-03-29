@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="options.css">
+</head>
+<body>
+    <div id="directorySelect">
+        <h3> Directory to download :</h3>
+        <div>
+            main <input class="directory" id="setMainDownloadDirectory" type="text" value="">
+        </div>
+        <div>
+            <button id="selectMainDirectory">Select</button>
+        </div>
+        <div>
+            sub <input class="directory" id="setSubDownloadDirectory" type="text" value="">
+        </div>
+        <div>
+            <button id="selectSubDirectory">Select</button>
+        </div>
+        "&lt;USERPROFILE&gt;\\" => "C:\\Users\\your username\\"
+    </div>
+
+    <div class="block">
+        <h3> Background image :</h3>
+
+        <div>
+            <label id="setBackgroundImageLabel" for="setBackgroundImage">Select image</label><span id="preview"></span>
+        </div>
+        <input type="button" id="resetBackgroundImage" value="Reset" />
+        <input class="directory" id="setBackgroundImage" type="file" value="" accept="image/*" />
+
+    </div>
+
+    <div class="block">
+        <h3>Other settings :</h3>
+        <div>
+            Maximum simultaneous downloads : <input type="text" id="setSimultaneous" value="4" />
+        </div>
+        <div>
+            How to count :
+            <select id="setHowToCount">
+                <option>Count by site domain</option>
+                <option selected>Count all in bulk</option>
+            </select>
+        </div>
+    </div>
+
+
+    <div class="block">
+        Overwrite when file already exists?
+        <select id="setOverwrite">
+            <option>Yes</option>
+            <option>No</option>
+            <option>Save as</option>
+            <option selected>Show dialog to select</option>
+        </select>
+    </div>
+
+    <div class="checkbox block">
+        Disable healthy notification:<input id="setIsDisableHealthyNotification" type="checkbox">
+    </div>
+
+    <div class="checkbox block">
+        If you receive a "403 ForBidden" error during download,auto retry:<input id="setIsAutoRetry" type="checkbox" checked>
+    </div>
+
+    <div class="block">
+        Pre-loaded URLs(※For multiple URLs, separate them with commas.)<br /><a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Match_patterns">Match patterns details</a>
+        <div>
+            <textarea id="setUrls">&lt;all_urls&gt;</textarea>
+        </div>
+    </div>
+
+    <p>
+        <div id="Youtube_dlCommand">
+            <h3>  Send to Youtube-dl:</h3>
+
+            <div id="Youtube_dlCommandMain">
+                youtube-dl --no-playlist <span id="addOption"></span> &lt;Input URL&gt;
+            </div>
+        </div>
+        <div>
+            <div>
+                Options to add:<select id="selectPreset"></select>
+            </div>
+            <div class="block">
+                <input id="selectedPreset" type="text" value="Default"><input id="savePreset" type="button" value="Save or Add"><input id="deletePreset" type="button" value="Delete">
+            </div>
+            <div class="bigBlock">
+                <div>
+                    Share information(json data) with other options<input id="setIsShareJson" type="checkbox" checked>
+                </div>
+                <div class="optionText">
+                    Filename option (--id, -o, --restrict-filenames...)<br />
+                    <input id="setFilenameOption" type="text" value="" placeholder='-o "%(title)s-%(id)s.%(ext)s"'>
+                </div>
+                <div class="optionText">
+                    Use this when retrieving JSON and downloading files. Except the filename.<br />
+                    --no-playlist <input id="setOutputOption" type="text" value="" placeholder="You can put -F.">
+                </div>
+                <div class="optionText">
+                    Use this when downloading files.<br />
+                    <input id="setAddOption" type="text" value="">
+                </div>
+                <br /><a href="https://github.com/ytdl-org/youtube-dl/blob/master/README.md#options">Options details</a>
+            </div>
+        </div>
+    </p>
+    <script src="options.js"></script>
+</body>
+</html>
