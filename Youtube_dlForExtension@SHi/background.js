@@ -942,10 +942,8 @@ UpdateTabListener();
         const latestVersion = "1.3.0";
         //最新バージョンじゃなかったら更新
         if (res.version != latestVersion) {
-            const port = browser.runtime.connectNative("Youtube_dlForExtension");
-            port.postMessage({
-                name: "Update"
-            });
+            console.log(await SendNativePromise("Update"));
+
             console.log("Native programs update " + latestVersion + " to " + res.version);
         } else {
             console.log("Native programs is the Latest version! " + latestVersion);
@@ -954,8 +952,8 @@ UpdateTabListener();
         browser.notifications.create("UpdateYoutube_dlForExtension", {
             type: "basic",
             iconUrl: "image/icon_enable64.png",
-            title: "There is a native program update!",
-            message: "You can update it automatically from now on.\n\n                     Click here!"
+            title: "Couldn't communicate native application",
+            message: "You are misconfiguring\n or need an update.\n Click here."
         });
 
     }
