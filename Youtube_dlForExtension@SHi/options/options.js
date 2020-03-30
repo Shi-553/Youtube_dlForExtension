@@ -194,6 +194,8 @@ setIsAutoRetry.addEventListener("change", () => {
 });
 
 setSimultaneous.addEventListener("change", () => {
+    if (setSimultaneous.value == "")
+        setSimultaneous.value = 2;
     browser.storage.local.set({ simultaneous: parseInt(setSimultaneous.value) });
 });
 
