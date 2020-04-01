@@ -655,12 +655,13 @@ const ReceiveDownload = async (res, port) => {
         if (res.returncode == 1) {
 
             if (option.isAutoRetry == null || option.isAutoRetry) {
-                const parcent = progresss[res.webpage_url + res.key] != null ? progresss[res.webpage_url + res.key].parcent : 0;
-                if (res.prevParcent == null)
-                    res.prevParcent = 0;
-
-                if (res.prevParcent < parcent) {
-                    res.messageToSend.prevParcent = parcent;
+                const percent = progresss[res.webpage_url + res.key] != null ? progresss[res.webpage_url + res.key].percent : 0;
+                if (res.prevPercent == null)
+                    res.prevPercent = 0;
+                console.log(res.prevPercent);
+                console.log(percent);
+                if (res.prevPercent < percent) {
+                    res.messageToSend.prevPercent = percent;
 
                     res.messageToSend.messageToSend = JSON.parse(JSON.stringify(res.messageToSend));
                     SendNative("To_Youtube_dl", ReceiveDownload, res.messageToSend);
@@ -707,7 +708,7 @@ const ReceiveDownload = async (res, port) => {
         NoticeDownloadStatus(res, true, "Overwritten", `${res.filePath}`);
     }
 
-    if (res.status == "started" && (option.isDisableHealthyNotification == null || !option.isDisableHealthyNotification) && res.prevParcent == null) {
+    if (res.status == "started" && (option.isDisableHealthyNotification == null || !option.isDisableHealthyNotification) && res.prevPercent == null) {
         NoticeDownloadStatus(res, false, "Started download", res.filePath)
     }
 
