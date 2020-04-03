@@ -8,5 +8,3 @@ if exist "Youtube_dlForExtension.py" (
     call "Youtube_dlForExtension.exe"
   )
 )
-
-pause
