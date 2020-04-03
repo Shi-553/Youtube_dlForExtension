@@ -280,3 +280,7 @@ __pycache__/
 *.sln
 /Youtube_dlForExtension@SHi/jsconfig.json
 /Youtube_dlForExtension@SHi - コピー
+/WindowsInstaller/build/Youtube_dlForExtensionInstaller
+/WindowsInstaller/dist
+/WindowsInstaller/Youtube_dlForExtensionInstaller.spec
+/Youtube_dlForExtension@SHi chrome
