@@ -1,2 +1,1 @@
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla\NativeMessagingHosts\Youtube_dlForExtension"
-pause
+powershell.exe -command start-process 'cmd' '/C reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla\NativeMessagingHosts\Youtube_dlForExtension" "&" pause'  -Verb runas
