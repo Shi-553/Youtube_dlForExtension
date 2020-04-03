@@ -41,12 +41,12 @@ def install():
 def InstallYoutube_dl(folderPath,isFfmpeg,callback):
 
     os.chdir(folderPath)
-    url = "https://drive.google.com/uc?export=download&id=1yhHlH-xtX2XjIa7DzEq5SOOxJT14I4A4"
+    url = "https://drive.google.com/uc?export=download&confirm=O1_E&id=1yhHlH-xtX2XjIa7DzEq5SOOxJT14I4A4"
 
     try:
         callback({"message":"Download..."})
-
         req = urllib.request.Request(url)
+        req.add_header("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:74.0) Gecko/20100101 Firefox/74.0")
 
         with urllib.request.urlopen(req) as res:
             with zipfile.ZipFile(BytesIO(res.read())) as zip:
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     resultLa = tk.Label(finishPage,font=("",13),wraplength=300, justify='left')
     resultLa.place(x=70,y=150)
     
-    finishBu = tk.Button(optionPage,text="Finish", width=10,font=("",10),command=lambda:sys.exit(0), state=tk.DISABLED)
+    finishBu = tk.Button(finishPage,text="Finish", width=10,font=("",10),command=lambda:sys.exit(0), state=tk.DISABLED)
     finishBu.place(x=300,y=230)
 
     firstPage.tkraise()
