@@ -398,10 +398,6 @@ const cache = {};
 const ReceiveGetJson = async (res, port) => {
     //console.log(res);
 
-    if (res.status == "error") {
-        console.error(res);
-        return;
-    }
     if (res.status != "finished")
         return;
 
@@ -615,10 +611,6 @@ const downloadMatchReg = /^\[download\]\s+(.+?)%\s+of\s+(.+?)\s+at\s+(.+?)\s+ETA
 const ReceiveDownload = async (res, port) => {
     if (res.status != "Progress") {
         //console.log(res);
-    }
-    if (res.status == "error") {
-        console.error(res);
-        return;
     }
 
 
@@ -848,7 +840,11 @@ const SendNative = (toSendName, callback, message) => {
         ports[callbackString][message.url + message.key] = { port: port, message: message };
 
         const listener = res => {
-            callback(res, port);
+            if (res.status == "error") {
+                console.error(res);
+            } else {
+                callback(res, port);
+            }
         };
         port.onMessage.addListener(listener);
         //port.onDisconnect.addListener(res => { console.log(res); });
@@ -860,7 +856,7 @@ const SendNative = (toSendName, callback, message) => {
         });
         // console.log(ports);
     } catch (e) {
-        //console.log(e);
+        console.error(e);
         browser.notifications.create({
             type: "basic",
             iconUrl: "image/icon_enable64.png",
@@ -871,15 +867,21 @@ const SendNative = (toSendName, callback, message) => {
 }
 
 //プロミス版 await で繋げられるが複数回返せない
-const SendNativePromise = (toSendName, message) => {
+const SendNativePromise = async (toSendName, message) => {
     try {
-        return browser.runtime.sendNativeMessage("Youtube_dlForExtension",
+        res = await browser.runtime.sendNativeMessage("Youtube_dlForExtension",
             {
                 name: toSendName,
                 value: message
             });
+        if (res.status == "error") {
+            console.error(res);
+        } else {
+            return res;
+        }
 
     } catch (e) {
+        console.error(e);
         browser.notifications.create({
             type: "basic",
             iconUrl: "image/icon_enable64.png",
@@ -959,11 +961,6 @@ UpdateTabListener();
 
     }
 
-    try {
-        //youtube-dlの設定
-        console.log(await SendNativePromise("UpdateYoutube_dl"));
-    } catch (e) {
-
-        console.log(e);
-    }
+    //youtube-dlの設定
+    console.log(await SendNativePromise("UpdateYoutube_dl"));
 })()
