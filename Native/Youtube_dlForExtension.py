@@ -12,8 +12,10 @@ import pathlib
 import platform
 import traceback
 
-
 pf = platform.system()
+
+def printErr(str):
+    print(str,file=sys.stderr)
 
 # Python 3.x version
 # Read a message from stdin and decode it.
@@ -90,6 +92,12 @@ absDirectoryPath = os.path.normpath(os.path.abspath(os.path.dirname(sys.argv[0])
 #ファイル名
 myFilename = os.path.basename(sys.argv[0])
 
+if pf == "Windows":
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+else:
+    startupinfo=None
+
 def isFoundYoutube_dl():
     abs=pathlib.Path(absDirectoryPath)
     ps=abs.iterdir()
@@ -164,15 +172,14 @@ def To_Youtube_dl(receivedMessage):
             return
     
     sendMessage(encodeMessage(receivedMessage))
-    startupinfo = subprocess.STARTUPINFO()
-    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     #送るところ本体
     try:
         if ("usePopen" in receivedMessage) and (receivedMessage["usePopen"]):
             proc = subprocess.Popen(receivedMessage["command"],
                                     cwd=receivedMessage["dir"],
                                     stdout = subprocess.PIPE,
-                                    stderr = subprocess.STDOUT)
+                                    stderr = subprocess.STDOUT,
+                                    startupinfo=startupinfo)
             
             receivedMessage["status"] = "Progress"
             for line in iter(proc.stdout.readline,b""):
@@ -320,7 +327,10 @@ def directoryManager(receivedMessage,isValueReturn=False):
                 select = ""
 
             command = '{} {}"{}"'.format(fileManagerName,select,os.path.normpath(path))
-            subprocess.run(command)
+            subprocess.run(command,
+                    stdout = subprocess.PIPE,
+                    stderr = subprocess.STDOUT,
+                    startupinfo=startupinfo)
             receivedMessage["status"] = "success"
             receivedMessage["command"] = command
             sendMessage(encodeMessage(receivedMessage))
@@ -357,23 +367,34 @@ def GetUserPofile():
     else:
         sendMessage(encodeMessage(os.environ["HOME"]))
 
-
+        
 #このファイルのアップデート
 def Update():
     if myFilename == "Youtube_dlForExtension.py":
-        proc = subprocess.run(["python","Youtube_dlForExtensionUpdater.py"])
-    elif myFilename == "Youtube_dlForExtension.exe":
-        proc = subprocess.run(["exe","Youtube_dlForExtensionUpdater.exe"])
-    
-    if proc.stdout is not None :
-        receivedMessage["stdout"] = proc.stdout.decode("cp932")#utf-8
-    else:
-        receivedMessage["stdout"] = ""
+        if pf=="Windows":
+            proc=subprocess.Popen(["py","Youtube_dlForExtensionUpdater.py"],
+                                        stdout=subprocess.PIPE,
+                                        creationflags= subprocess.CREATE_BREAKAWAY_FROM_JOB,
+                                        start_new_session=True)
+        else:
+            proc=subprocess.Popen(["py","Youtube_dlForExtensionUpdater.py"],
+                                        stdout=subprocess.PIPE,
+                                        start_new_session=True)
 
+    elif myFilename == "Youtube_dlForExtension.exe":
+        proc=subprocess.Popen(["Youtube_dlForExtensionUpdater.exe"],
+                                        stdout=subprocess.PIPE,
+                                        creationflags= subprocess.CREATE_BREAKAWAY_FROM_JOB,
+                                        start_new_session=True)
+        
+    line = proc.stdout.readline()
+    receivedMessage["stdout"] = line.decode("cp932")
     sendMessage(encodeMessage(receivedMessage))
+    sys.exit(0)
+
 
 def GetVersion():
-    receivedMessage["version"] = "1.4.0"
+    receivedMessage["version"] = "1.4.1"
     sendMessage(encodeMessage(receivedMessage))
 
         
@@ -386,7 +407,8 @@ def UpdateYoutube_dl():
     if os.path.isfile("youtube-dl.exe"):
         proc = subprocess.run(["youtube-dl", "-U"],
                                     stdout = subprocess.PIPE,
-                                    stderr = subprocess.STDOUT)
+                                    stderr = subprocess.STDOUT,
+                                    startupinfo=startupinfo)
             
         receivedMessage["stdout"] = proc.stdout.decode("cp932")#utf-8
         
@@ -399,7 +421,8 @@ def UpdateYoutube_dl():
     else:
         proc = subprocess.run(["py", "-m", "pip", "install","-U", "youtube-dl","--user"],
                                     stdout = subprocess.PIPE,
-                                    stderr = subprocess.STDOUT)
+                                    stderr = subprocess.STDOUT,
+                                    startupinfo=startupinfo)
         
         receivedMessage["stdout"] = proc.stdout.decode("cp932")#utf-8
 
@@ -443,8 +466,8 @@ try:
     
 except Exception as e:
     tb=traceback.format_exc()
-    print(tb, file=sys.stderr)
-    print("err", file=sys.stderr)
+    printErr(tb)
+
     receivedMessage["status"]="error"
     receivedMessage["trakback"]=tb
     sendMessage(encodeMessage(receivedMessage))
