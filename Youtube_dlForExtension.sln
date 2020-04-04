@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29920.165
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{77CEF2AD-C021-4772-B471-19F25504E0C3}"
+	ProjectSection(SolutionItems) = preProject
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extension", "Extension", "{34B10C92-7A62-46EC-9F1D-E05304E95BC0}"
+	ProjectSection(SolutionItems) = preProject
+		Youtube_dlForExtension@SHi\background.js = Youtube_dlForExtension@SHi\background.js
+		Youtube_dlForExtension@SHi\jsconfig.json = Youtube_dlForExtension@SHi\jsconfig.json
+		Youtube_dlForExtension@SHi\manifest.json = Youtube_dlForExtension@SHi\manifest.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Native", "Native", "{2FD7B3A3-04E3-424B-B7AF-6AEF60945B4F}"
+	ProjectSection(SolutionItems) = preProject
+		Native\RegistryDelete.bat = Native\RegistryDelete.bat
+		Native\RegistrySet.bat = Native\RegistrySet.bat
+		Native\Youtube_dlForExtension.bat = Native\Youtube_dlForExtension.bat
+		Native\Youtube_dlForExtension.json = Native\Youtube_dlForExtension.json
+		Native\Youtube_dlForExtension.py = Native\Youtube_dlForExtension.py
+		Native\Youtube_dlForExtensionUpdater.py = Native\Youtube_dlForExtensionUpdater.py
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Popup", "Popup", "{EDBDFB9F-30CF-4E03-BDEF-20F17D60D593}"
+	ProjectSection(SolutionItems) = preProject
+		Youtube_dlForExtension@SHi\popup\backgroundImage.js = Youtube_dlForExtension@SHi\popup\backgroundImage.js
+		Youtube_dlForExtension@SHi\popup\popup.css = Youtube_dlForExtension@SHi\popup\popup.css
+		Youtube_dlForExtension@SHi\popup\popup.html = Youtube_dlForExtension@SHi\popup\popup.html
+		Youtube_dlForExtension@SHi\popup\popup.js = Youtube_dlForExtension@SHi\popup\popup.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Options", "Options", "{FD01B231-1657-4255-A3BA-8A71913B6718}"
+	ProjectSection(SolutionItems) = preProject
+		Youtube_dlForExtension@SHi\options\options.css = Youtube_dlForExtension@SHi\options\options.css
+		Youtube_dlForExtension@SHi\options\options.html = Youtube_dlForExtension@SHi\options\options.html
+		Youtube_dlForExtension@SHi\options\options.js = Youtube_dlForExtension@SHi\options\options.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WindowsInstaller", "WindowsInstaller", "{BED17837-17EE-492A-9B4D-CFC4A48B00CA}"
+	ProjectSection(SolutionItems) = preProject
+		WindowsInstaller\admin.py = WindowsInstaller\admin.py
+		WindowsInstaller\Youtube_dlForExtensionInstaller.py = WindowsInstaller\Youtube_dlForExtensionInstaller.py
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{34B10C92-7A62-46EC-9F1D-E05304E95BC0} = {77CEF2AD-C021-4772-B471-19F25504E0C3}
+		{2FD7B3A3-04E3-424B-B7AF-6AEF60945B4F} = {77CEF2AD-C021-4772-B471-19F25504E0C3}
+		{EDBDFB9F-30CF-4E03-BDEF-20F17D60D593} = {34B10C92-7A62-46EC-9F1D-E05304E95BC0}
+		{FD01B231-1657-4255-A3BA-8A71913B6718} = {34B10C92-7A62-46EC-9F1D-E05304E95BC0}
+		{BED17837-17EE-492A-9B4D-CFC4A48B00CA} = {77CEF2AD-C021-4772-B471-19F25504E0C3}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A9D1FD0E-EE60-4895-B1A6-35F9BB9604A4}
+	EndGlobalSection
+EndGlobal
