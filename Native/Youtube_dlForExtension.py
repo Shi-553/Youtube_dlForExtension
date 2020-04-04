@@ -164,6 +164,8 @@ def To_Youtube_dl(receivedMessage):
             return
     
     sendMessage(encodeMessage(receivedMessage))
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     #送るところ本体
     try:
         if ("usePopen" in receivedMessage) and (receivedMessage["usePopen"]):
@@ -182,7 +184,9 @@ def To_Youtube_dl(receivedMessage):
             proc = subprocess.run(receivedMessage["command"],
                                 cwd=receivedMessage["dir"],
                                 stdout = subprocess.PIPE,
-                                stderr = subprocess.STDOUT)
+                                stderr = subprocess.PIPE,
+                                stdin = subprocess.PIPE, 
+                                startupinfo=startupinfo)
             
 
         receivedMessage["status"] = "finishedDownload"
@@ -369,7 +373,7 @@ def Update():
     sendMessage(encodeMessage(receivedMessage))
 
 def GetVersion():
-    receivedMessage["version"] = "1.3.1"
+    receivedMessage["version"] = "1.4.0"
     sendMessage(encodeMessage(receivedMessage))
 
         
