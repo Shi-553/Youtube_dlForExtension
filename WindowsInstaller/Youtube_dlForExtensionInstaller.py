@@ -28,7 +28,7 @@ def install():
 
     def callback(log):
         if "error" in log:
-            resultLa["fc"] = "red"
+            resultLa["fg"] = "red"
         if "finish" in log:
             finishBu["state"] = tk.ACTIVE
 
@@ -46,7 +46,6 @@ def InstallYoutube_dl(folderPath,isFfmpeg,callback):
     try:
         callback({"message":"Download..."})
         req = urllib.request.Request(url)
-        req.add_header("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:74.0) Gecko/20100101 Firefox/74.0")
 
         with urllib.request.urlopen(req) as res:
             with zipfile.ZipFile(BytesIO(res.read())) as zip:
@@ -77,7 +76,7 @@ def InstallYoutube_dl(folderPath,isFfmpeg,callback):
                     list = zip.namelist()
                     for x in list:
                         if "ffmpeg.exe" in x:
-                            shutil.move(x,folderPath + "Youtube_dlForExtension\\","ffmpeg.exe")
+                            shutil.move(x,folderPath + "Youtube_dlForExtension\\ffmpeg.exe")
                             break
 
     except Exception as err:
@@ -89,7 +88,7 @@ def InstallYoutube_dl(folderPath,isFfmpeg,callback):
 
 if __name__ == "__main__":
     if not admin.isAdmin():
-        admin.runAdmin(os.path.abspath(sys.argv[0]),False)
+        admin.runAdmin(os.path.abspath(sys.argv[0]))
         sys.exit(0)
         
 

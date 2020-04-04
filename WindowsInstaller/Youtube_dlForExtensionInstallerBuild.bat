@@ -1,5 +1,5 @@
 cd /d %~dp0
 
-pyinstaller C:\Users\sibat\Documents\firefox\Youtube_dlForExtension\WindowsInstaller\Youtube_dlForExtensionInstaller.py -F --uac-admin --noconsole
+py -3-64 -m PyInstaller Youtube_dlForExtensionInstaller.py -F --uac-admin -w
 
 pause

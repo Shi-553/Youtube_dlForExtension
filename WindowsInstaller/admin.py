@@ -8,12 +8,12 @@ def isAdmin():
     except:
         return False
 
-def runAdmin(path,hideConsole=True):
+def runAdmin(path):
     (base,ext) =os.path.splitext(path)
 
     if ext==".py":
         parameters=path
-        file="pythonw" if hideConsole else "python"
+        file="py"
     else:
         parameters=""
         file=path
