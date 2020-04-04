@@ -942,7 +942,7 @@ UpdateTabListener();
         //バージョン確認
         const res = await SendNativePromise("GetVersion", {});
 
-        const latestVersion = "1.3.1";
+        const latestVersion = "1.4.0";
         //最新バージョンじゃなかったら更新
         if (res.version != latestVersion) {
             console.log(await SendNativePromise("Update"));
