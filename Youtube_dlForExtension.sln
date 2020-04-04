@@ -20,6 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Native", "Native", "{2FD7B3
 	ProjectSection(SolutionItems) = preProject
 		Native\RegistryDelete.bat = Native\RegistryDelete.bat
 		Native\RegistrySet.bat = Native\RegistrySet.bat
+		Native\setup.py = Native\setup.py
 		Native\Youtube_dlForExtension.bat = Native\Youtube_dlForExtension.bat
 		Native\Youtube_dlForExtension.json = Native\Youtube_dlForExtension.json
 		Native\Youtube_dlForExtension.py = Native\Youtube_dlForExtension.py
