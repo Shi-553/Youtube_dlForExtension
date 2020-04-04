@@ -10,7 +10,7 @@ import re
 import urllib.request
 import pathlib
 import platform
-import getpass
+import traceback
 
 
 pf = platform.system()
@@ -90,14 +90,22 @@ absDirectoryPath = os.path.normpath(os.path.abspath(os.path.dirname(sys.argv[0])
 #ファイル名
 myFilename = os.path.basename(sys.argv[0])
 
+def isFoundYoutube_dl():
+    abs=pathlib.Path(absDirectoryPath)
+    ps=abs.iterdir()
+
+    for p in ps:
+        if p.stem=="youtube-dl":
+            return True
+
+    return False
 
 def To_Youtube_dl(receivedMessage):
     receivedMessage["status"] = "started"
     #sendMessage(encodeMessage(receivedMessage))
 
-    #if myFilename == "Youtube_dlForExtension.exe":
-    #    receivedMessage["command"] =
-    #    receivedMessage["command"].replace("youtube-dl","youtube-dl.exe",1)
+    if not isFoundYoutube_dl():
+        receivedMessage["command"]=receivedMessage["command"].replace("youtube-dl","py -m youtube_dl",1)
 
     #JSONがあればここ
     absPath = os.path.normpath(os.path.join(absDirectoryPath, "JSONCache\{}.json".format(urlToFilename(receivedMessage["url"]+str(receivedMessage["tabId"])+receivedMessage["key"]))))
@@ -370,8 +378,21 @@ def GetVersion():
 def UpdateYoutube_dl():
     receivedMessage["filename"] = myFilename
 
-    #pyでyoutube-dlがない場合は勝手にインストールしてくれる
-    if myFilename == "Youtube_dlForExtension.py":
+    #youtube-dlのexeがあれば更新確認
+    if os.path.isfile("youtube-dl.exe"):
+        proc = subprocess.run(["youtube-dl", "-U"],
+                                    stdout = subprocess.PIPE,
+                                    stderr = subprocess.STDOUT)
+            
+        receivedMessage["stdout"] = proc.stdout.decode("cp932")#utf-8
+        
+    #youtube-dlのexeなくてこのファイルがexeならダウンロード
+    elif myFilename == "Youtube_dlForExtension.exe":
+        urllib.request.urlretrieve("https://youtube-dl.org/downloads/latest/youtube-dl.exe","youtube-dl.exe")
+        receivedMessage["stdout"] = "Download Youtube_dlForExtension.exe"
+
+    #このファイルがexeじゃないならpipを試す
+    else:
         proc = subprocess.run(["py", "-m", "pip", "install","-U", "youtube-dl","--user"],
                                     stdout = subprocess.PIPE,
                                     stderr = subprocess.STDOUT)
@@ -379,25 +400,12 @@ def UpdateYoutube_dl():
         receivedMessage["stdout"] = proc.stdout.decode("cp932")#utf-8
 
 
-    #exeでyoutube-dlがない場合はダウンロード
-    if myFilename == "Youtube_dlForExtension.exe":
-        if os.path.isfile("youtube-dl.exe"):
-            proc = subprocess.run(["youtube-dl", "-U"],
-                                        stdout = subprocess.PIPE,
-                                        stderr = subprocess.STDOUT)
-            
-            receivedMessage["stdout"] = proc.stdout.decode("cp932")#utf-8
-
-        else:
-            urllib.request.urlretrieve("https://youtube-dl.org/downloads/latest/youtube-dl.exe","youtube-dl.exe")
-            receivedMessage["stdout"] = "Download Youtube_dlForExtension.exe"
-
-
     sendMessage(encodeMessage(receivedMessage))
 
 
 try:
     receivedMessage = getMessage()
+   
     ##receivedMessage["status"]="1919810"
     ##sendMessage(encodeMessage(receivedMessage))
 
@@ -430,4 +438,9 @@ try:
         GetVersion()
     
 except Exception as e:
-    print(e, file=sys.stderr)
+    tb=traceback.format_exc()
+    print(tb, file=sys.stderr)
+    print("err", file=sys.stderr)
+    receivedMessage["status"]="error"
+    receivedMessage["trakback"]=tb
+    sendMessage(encodeMessage(receivedMessage))
