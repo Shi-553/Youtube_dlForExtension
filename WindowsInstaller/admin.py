@@ -1,5 +1,4 @@
-﻿import subprocess
-import ctypes
+﻿import ctypes
 import os
 
 def isAdmin():
