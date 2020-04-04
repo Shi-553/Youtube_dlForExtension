@@ -10,8 +10,7 @@ from tkinter import filedialog
 import threading
 import admin
 import shutil
-import subprocess
-import ctypes
+import pathlib
 
 def selectDirectory(entry,nextBu):
     dirPath = filedialog.askdirectory(initialdir=entry.get())
@@ -41,17 +40,28 @@ def install():
 def InstallYoutube_dl(folderPath,isFfmpeg,callback):
 
     os.chdir(folderPath)
-    url = "https://drive.google.com/uc?export=download&confirm=O1_E&id=1yhHlH-xtX2XjIa7DzEq5SOOxJT14I4A4"
+    url = "https://drive.google.com/uc?export=download&id=1yhHlH-xtX2XjIa7DzEq5SOOxJT14I4A4"
 
     try:
         callback({"message":"Download..."})
         req = urllib.request.Request(url)
+        req.add_header("User-Agent", 'Mozilla/5.0')
 
-        with urllib.request.urlopen(req) as res:
-            with zipfile.ZipFile(BytesIO(res.read())) as zip:
-                zip.extractall()
-    
-                
+        try:
+            with urllib.request.urlopen(req) as res:
+                with zipfile.ZipFile(BytesIO(res.read())) as zip:
+                    zip.extractall()
+        except zipfile.BadZipfile:
+            callback({"error":True,"message":str(err)})
+            with urllib.request.urlopen(req) as res:
+                with zipfile.ZipFile(BytesIO(res.read())) as zip:
+                    zip.extractall()
+        
+        p = pathlib.Path(folderPath+"\\Youtube_dlForExtension")
+
+        for ini in p.glob("desktop.ini"):
+            ini.unlink()
+
         callback({"message":"Change registory..."})
 
         path = "SOFTWARE\\Mozilla\\NativeMessagingHosts\\Youtube_dlForExtension"
