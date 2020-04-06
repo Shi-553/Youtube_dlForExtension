@@ -126,7 +126,7 @@ def To_Youtube_dl(receivedMessage):
 
     #dirがあれば置き換えと存在確認
     if "dir" in receivedMessage:
-        receivedMessage["dir"] = replaceUserPofile(receivedMessage["dir"])
+        receivedMessage["dir"] = os.path.normpath(replaceUserPofile(receivedMessage["dir"]))
 
         if not os.path.isdir(receivedMessage["dir"]):
             receivedMessage["status"] = "DoesNotExistDirectory"
@@ -191,8 +191,7 @@ def To_Youtube_dl(receivedMessage):
             proc = subprocess.run(receivedMessage["command"],
                                 cwd=receivedMessage["dir"],
                                 stdout = subprocess.PIPE,
-                                stderr = subprocess.PIPE,
-                                stdin = subprocess.PIPE, 
+                                stderr = subprocess.STDOUT,
                                 startupinfo=startupinfo)
             
 
@@ -327,10 +326,7 @@ def directoryManager(receivedMessage,isValueReturn=False):
                 select = ""
 
             command = '{} {}"{}"'.format(fileManagerName,select,os.path.normpath(path))
-            subprocess.run(command,
-                    stdout = subprocess.PIPE,
-                    stderr = subprocess.STDOUT,
-                    startupinfo=startupinfo)
+            subprocess.run(command)
             receivedMessage["status"] = "success"
             receivedMessage["command"] = command
             sendMessage(encodeMessage(receivedMessage))
