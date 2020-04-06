@@ -45,14 +45,14 @@ def InstallYoutube_dl(folderPath,isFfmpeg,callback):
     try:
         callback({"message":"Download..."})
         req = urllib.request.Request(url)
-        req.add_header("User-Agent", 'Mozilla/5.0')
 
         try:
             with urllib.request.urlopen(req) as res:
                 with zipfile.ZipFile(BytesIO(res.read())) as zip:
                     zip.extractall()
-        except zipfile.BadZipfile:
-            callback({"error":True,"message":str(err)})
+        except zipfile.BadZipfile as err:
+            callback({"message":str(err)})
+            callback({"message":"Retry..."})
             with urllib.request.urlopen(req) as res:
                 with zipfile.ZipFile(BytesIO(res.read())) as zip:
                     zip.extractall()
