@@ -15,10 +15,10 @@
             }
 
         } catch (e) {
+            console.error(e);
             if (isSuppressEror) {
                 return null;
             }
-            console.error(e);
             browser.notifications.create({
                 type: "basic",
                 iconUrl: "image/icon_enable64.png",
@@ -74,20 +74,33 @@
         return;
     }
 
-    const latestVersion = "1.4.1";
+    const latestVersion = "1.4.2";
     //最新バージョンじゃなかったら更新
     if (res.version != latestVersion) {
-        await SendNativePromise("Update", {});
-        await Sleep(3000);
-        console.log("Native programs update " + latestVersion + " to " + res.version);
+        if (await SendNativePromise("Update", {}, true) == null) {
+            browser.notifications.create("UpdateYoutube_dlForExtension", {
+                type: "basic",
+                iconUrl: "image/icon_enable64.png",
+                title: "Failed to communicate with updater",
+                message: "Sorry.\nUpdater has a bug and\nneed for update again."
+            });
+        } else {
+            await Sleep(3000);
+            browser.notifications.create("UpdateYoutube_dlForExtension", {
+                type: "basic",
+                iconUrl: "image/icon_enable64.png",
+                title: "Native programs update ",
+                message:  latestVersion + " to " + res.version
+            });
+        }
     } else {
         console.log("Native programs is the Latest version! " + latestVersion);
     }
 
 
     //youtube-dlの設定
-    let r=null,i=0;
-    while (r == null&&i<10) {
+    let r = null, i = 0;
+    while (r == null && i < 10) {
         r = await SendNativePromise("UpdateYoutube_dl", {}, true);
         await Sleep(1000);
         i++;
