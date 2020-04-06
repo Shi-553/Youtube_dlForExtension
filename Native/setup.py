@@ -1,14 +1,24 @@
 ﻿from distutils.core import setup
 import py2exe
+import sys
+import os
+import re
+
+script=sys.argv.pop(2)
+bf=sys.argv.pop(2)
+
 
 option = {
-    "bundle_files":2,
-    "compressed": True,
-    "includes": ["tkinter"]
+    "bundle_files":bf,
+    "compressed": True
 }
+
 setup(
-    options = {"py2exe": option},
+    options = {
+        'py2exe': option,
+        },
     windows = [
-    {"script" : "Youtube_dlForExtension.py"}],
-    zipfile = None 
-    )
+        {"script":script}
+    ],
+    zipfile = None,
+)
