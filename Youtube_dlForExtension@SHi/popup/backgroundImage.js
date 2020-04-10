@@ -1,5 +1,5 @@
 
-(async() => {
+(async () => {
 
     const option = await browser.storage.local.get();
 

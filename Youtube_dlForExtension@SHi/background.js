@@ -1,5 +1,5 @@
-(async () => {
 
+(async () => {
     //プロミス版 await で繋げられるが複数回返せない
     const SendNativePromise = async (toSendName, message, isSuppressEror = false) => {
         try {
@@ -28,37 +28,36 @@
         }
     }
 
-    const Sleep = (waitMMSeconds) => {
-        return new Promise(resolve => setTimeout(resolve, waitMMSeconds));
+
+    myscript.UpdateBrowserActionIcon(false, null);
+
+
+
+    let optionsPort, popupPort;
+
+    const ConnectPostInitializing = p => {
+        console.log(p);
+        p.onMessage.addListener(PostInitializing);
+
+        if (p.name == "options") {
+            optionsPort = p;
+            optionsPort.onDisconnect.addListener(() => optionsPort = null);
+        }
+        if (p.name == "popup") {
+            popupPort = p;
+            popupPort.onDisconnect.addListener(() => popupPort = null);
+        }
     }
-
-
-    const enables = {
-        16: "image/icon_enable16.png",
-        32: "image/icon_enable32.png",
-        64: "image/icon_enable64.png"
-    };
-    const disables = {
-        16: "image/icon_disable16.png",
-        32: "image/icon_disable32.png",
-        64: "image/icon_disable64.png"
-    };
-    const UpdateBrowserActionIcon = (sw, tabId) => {
-        //console.log(sw + "!!!");
-        if (sw) {
-            if (tabId == null)
-                browser.browserAction.setIcon({ path: enables });
-            else
-                browser.browserAction.setIcon({ path: enables, tabId: tabId });
-        } else {
-            if (tabId == null)
-                browser.browserAction.setIcon({ path: disables });
-            else
-                browser.browserAction.setIcon({ path: disables, tabId: tabId });
+    const PostInitializing = m => {
+        if (m.name == "options") {
+            myscript.PostMessage(optionsPort, "Init", m.id);
+        }
+        if (m.name == "popup") {
+            myscript.PostMessage(popupPort, "Init", m.id);
         }
     }
 
-    UpdateBrowserActionIcon(false, null);
+    browser.runtime.onConnect.addListener(ConnectPostInitializing);
 
 
 
@@ -74,23 +73,23 @@
         return;
     }
 
-    const latestVersion = "1.4.2";
+    const latestVersion = "1.5";
     //最新バージョンじゃなかったら更新
     if (res.version != latestVersion) {
         if (await SendNativePromise("Update", {}, true) == null) {
-            browser.notifications.create("UpdateYoutube_dlForExtension", {
+            browser.notifications.create("FailUpdateYoutube_dlForExtension", {
                 type: "basic",
                 iconUrl: "image/icon_enable64.png",
                 title: "Failed to communicate with updater",
                 message: "Sorry.\nUpdater has a bug and\nneed for update again."
             });
         } else {
-            await Sleep(3000);
+            await myscript.Sleep(3000);
             browser.notifications.create("UpdateYoutube_dlForExtension", {
                 type: "basic",
                 iconUrl: "image/icon_enable64.png",
                 title: "Native programs update ",
-                message:  latestVersion + " to " + res.version
+                message: res.version + " to " + latestVersion
             });
         }
     } else {
@@ -100,27 +99,81 @@
 
     //youtube-dlの設定
     let r = null, i = 0;
-    while (r == null && i < 10) {
+    while (i < 5) {
         r = await SendNativePromise("UpdateYoutube_dl", {}, true);
-        await Sleep(1000);
+        if (r != null)
+            break;
+        await myscript.Sleep(1000);
         i++;
     }
     console.log(r, i);
+    if (/Updated youtube-dl/.test(r.stdout)) {
+        browser.notifications.create("UpdateYoutube_dl", {
+            type: "basic",
+            iconUrl: "image/icon_enable64.png",
+            title: "Youtube-dl update.",
+            message: ""
+        });
+    }
 
 
-
-    //browser.storage.local.clear();
     let isPopupOpen = false, switchProgressFlag = false;
-    let userPofile;
-    //ポップアップのスクリプトから
-    browser.runtime.onMessage.addListener(async (e) => {
-        //console.log(e);
+    let userProfile;
 
-        if (e.noticeDownloadStatus != null) {
-            NoticeDownloadStatus(e.res, e.showExplorerLink, e.title, e.message);
+    const optionsOnMessage = async (e) => {
+        console.log(e);
+        const m = e.message, id = e.id;
+
+        if (m.isUpdateTabListener) {
+            UpdateTabListener();
+
         }
 
-        if (e.isStopDownloadAll) {
+        if (m.changePresetValue) {
+            for (let url of Object.keys(cache)) {
+                if (m.isShareJson) {
+                    for (let key of Object.keys(cache[url])) {
+                        if (ports[ReceiveGetJson.name.toString()][url + key] != null)
+                            ports[ReceiveGetJson.name.toString()][url + key].port.disconnect();
+                    }
+                    cache[url].json = null;
+
+                } else {
+                    if (ports[ReceiveGetJson.name.toString()][url + m.key] != null)
+                        ports[ReceiveGetJson.name.toString()][url + m.key].port.disconnect();
+                }
+                cache[url]["options"][m.key] = null;
+            }
+        }
+
+
+        if (m.isGetUserProfile) {
+            if (userProfile == null)
+                userProfile = await SendNativePromise("GetUserProfile");
+
+
+            myscript.PostMessage(optionsPort, userProfile, id);
+
+        }
+
+        if (m.isSelectDirectory) {
+            myscript.PostMessage(optionsPort, await SelectDirectoryAsync(m), id);
+        }
+
+        if (m.isGetInitStatus) {
+            myscript.PostMessage(optionsPort, "EndInit", id);
+        }
+
+    }
+    const popupOnMessage = async (e) => {
+        console.log(e);
+        const m = e.message, id = e.id;
+
+        if (m.noticeDownloadStatus != null) {
+            NoticeDownloadStatus(m.res, m.showExplorerLink, m.title, m.message);
+        }
+
+        if (m.isStopDownloadAll) {
             const reDownloadStr = ReceiveDownload.name.toString();
             for (let key of Object.keys(ports[reDownloadStr])) {
                 console.log("StopDownload " + key);
@@ -141,12 +194,9 @@
             for (let key of Object.keys(all))
                 browser.notifications.clear(key);
 
-            browser.runtime.sendMessage({
-                message: "Progress",
-                progresss: progresss,
-                switchProgressFlag: switchProgressFlag
-            });
-            UpdateBadgeText();
+            SendProccess(id)
+
+            myscript.UpdateBadgeText(GetDownloadProgressCount().toString());
             browser.notifications.create("stopDownloadAll", {
                 type: "basic",
                 iconUrl: "image/icon_enable64.png",
@@ -156,43 +206,35 @@
 
         }
 
-        if (e.restartDownload) {
-            const canDownload = await CanDownload(e.progress.domain);
-            progresss[e.progress.url + e.progress.key].isDownloading = canDownload ? "Download" : "Wait";
+        if (m.restartDownload) {
+            const canDownload = await CanDownload(m.progress.domain);
+            progresss[m.progress.url + m.progress.key].isDownloading = canDownload ? "Download" : "Wait";
             if (canDownload) {
-                e.progress.messageToSend.messageToSend = JSON.parse(JSON.stringify(e.progress.messageToSend));
-                SendNative("To_Youtube_dl", ReceiveDownload, e.progress.messageToSend);
+                m.progress.messageToSend.messageToSend = JSON.parse(JSON.stringify(m.progress.messageToSend));
+                SendNative("To_Youtube_dl", ReceiveDownload, m.progress.messageToSend);
             } else {
-                waitProgress.push(progresss[e.progress.url + e.progress.key]);
+                waitProgress.push(progresss[m.progress.url + m.progress.key]);
             }
-            browser.runtime.sendMessage({
-                message: "Progress",
-                progresss: progresss,
-                switchProgressFlag: switchProgressFlag
-            });
-            UpdateBadgeText();
+            SendProccess(id);
+            myscript.UpdateBadgeText(GetDownloadProgressCount().toString());
 
         }
 
-        if (e.stopDownload) {
+        if (m.stopDownload) {
             //console.log(e);
             //console.log(ports);
-            waitProgress = waitProgress.filter(p => p != progresss[e.progress.url + e.progress.key]);
+            waitProgress = waitProgress.filter(p => p != progresss[m.progress.url + m.progress.key]);
 
-            const p = ports[ReceiveDownload.name.toString()][e.progress.url + e.progress.key];
+            const p = ports[ReceiveDownload.name.toString()][m.progress.url + m.progress.key];
             if (p) {
                 p.port.disconnect();
             }
-            progresss[e.progress.url + e.progress.key].isDownloading = "Stop";
-            e.progress.filePath += ".part";
-            NoticeDownloadStatus(e.progress, true, "Stop Download", e.progress.json._filename);
-            browser.runtime.sendMessage({
-                message: "Progress",
-                progresss: progresss,
-                switchProgressFlag: switchProgressFlag
-            });
-            UpdateBadgeText();
-            SendNativePromise("RemoveJson", e.progress.messageToSend);
+            progresss[m.progress.url + m.progress.key].isDownloading = "Stop";
+            m.progress.filePath += ".part";
+            NoticeDownloadStatus(m.progress, true, "Stop Download", m.progress.json._filename);
+            SendProccess(id);
+            myscript.UpdateBadgeText(GetDownloadProgressCount().toString());
+            SendNativePromise("RemoveJson", m.progress.messageToSend);
 
             if (waitProgress.length != 0) {
                 const waitingProgres = waitProgress.shift();
@@ -200,114 +242,96 @@
 
                 waitingProgres.messageToSend.messageToSend = JSON.parse(JSON.stringify(waitingProgres.messageToSend));
                 SendNative("To_Youtube_dl", ReceiveDownload, waitingProgres.messageToSend);
-                console.log(progresss);//こっちまでかわるか？
 
             }
         }
 
-        if (e.isUpdateTabListener) {
-            UpdateTabListener();
+        if (m.isGetJson) {
+            GetJson(null, m.url, m.key, m.isCacheRefresh);
 
         }
 
-        if (e.changePresetValue) {
-            for (let url of Object.keys(cache)) {
-                if (e.isShareJson) {
-                    for (let key of Object.keys(cache[url])) {
-                        if (ports[ReceiveGetJson.name.toString()][url + key] != null)
-                            ports[ReceiveGetJson.name.toString()][url + key].port.disconnect();
-                    }
-                    cache[url].json = null;
+        if (m.isGetUserProfile) {
+            if (userProfile == null)
+                userProfile = await SendNativePromise("GetUserProfile");
 
-                } else {
-                    if (ports[ReceiveGetJson.name.toString()][url + e.key] != null)
-                        ports[ReceiveGetJson.name.toString()][url + e.key].port.disconnect();
-                }
-                cache[url]["options"][e.key] = null;
-            }
-        }
-
-        if (e.isGetJson) {
-            GetJson(null, e.url, e.key, e.isCacheRefresh);
+            myscript.PostMessage(popupPort, userProfile, id);
 
         }
 
-        if (e.isGetUserPofile) {
-            if (userPofile == null)
-                userPofile = await SendNativePromise("GetUserPofile");
-            return userPofile;
+        if (m.switchProgressFlag != null) {
+            switchProgressFlag = m.switchProgressFlag;
 
         }
 
-        if (e.switchProgressFlag != null) {
-            switchProgressFlag = e.switchProgressFlag;
-
-        }
-
-        if (e.isOpen) {
+        if (m.isOpen) {
             isPopupOpen = true;
             //console.log(progresss);
-            browser.runtime.sendMessage({
-                message: "Progress",
-                progresss: progresss,
-                switchProgressFlag: switchProgressFlag
-            });
+            SendProccess(id);
             GetJson();
 
         }
 
-        if (e.isClose) {
+        if (m.isClose) {
             isPopupOpen = false;
             browser.storage.local.set({
-                selectedPreset: e.selectedPreset
+                selectedPreset: m.selectedPreset
             });
 
         }
 
-        if (e.isSelectDirectory) {
-            return await SelectDirectoryAsync(e);
+        if (m.isSelectPath) {
+            myscript.PostMessage(popupPort, await SelectPathAsync(m), id);
         }
 
-        if (e.isSelectPath) {
-            return await SelectPathAsync(e);
-        }
-
-        if (e.isDownload) {
-            if (e.downloadDirectory == null) {
-                e.downloadDirectory = await SelectDirectoryAsync(e);
-                if (e.downloadDirectory == null)
+        if (m.isDownload) {
+            if (m.downloadDirectory == null) {
+                m.downloadDirectory = await SelectDirectoryAsync(m);
+                if (m.downloadDirectory == "")
                     return;
             }
-            Download(e);
+            Download(m);
+        }
+
+        if (m.isGetInitStatus) {
+            myscript.PostMessage(popupPort, "EndInit", id);
+        }
+    }
+
+    browser.runtime.onConnect.removeListener(ConnectPostInitializing);
+
+    browser.runtime.onConnect.addListener(p => {
+        if (p.name == "options") {
+            optionsPort = p;
+            optionsPort.onDisconnect.addListener(() => optionsPort = null);
+
+            optionsPort.onMessage.addListener(optionsOnMessage);
+        }
+        if (p.name == "popup") {
+            popupPort = p;
+            popupPort.onDisconnect.addListener(() => popupPort = null);
+
+            popupPort.onMessage.addListener(popupOnMessage);
         }
     });
-    const GetPreset = (option, key = null) => {
-        if (key == null)
-            key = option.selectedPreset;
 
-        const s = (option.preset != null && option.selectedPreset != null) ? option.preset[key] : null;
-        if (s == null) {
-            browser.storage.local.set({
-                preset: {
-                    Default: { filename: "", output: "", option: "", isShareJson: true }
-                },
-                selectedPreset: "Default"
-            });
-            return { filename: "", output: "", option: "", key: "Default", isShareJson: true };
-        }
-        s.key = key;
-        return s;
+
+    if (optionsPort != null) {
+        optionsPort.onMessage.removeListener(PostInitializing);
+        optionsPort.onMessage.addListener(optionsOnMessage);
+
+        myscript.PostMessage(optionsPort, "EndInit");
     }
 
 
-    const UpdateBadgeText = () => {
-        let count = 0;
-        for (let key of Object.keys(progresss)) {
-            if (progresss[key].isDownloading == "Download")
-                count++;
-        }
-        browser.browserAction.setBadgeText({ text: count != 0 ? count.toString() : "" });
+    if (popupPort != null) {
+        popupPort.onMessage.removeListener(PostInitializing);
+        popupPort.onMessage.addListener(popupOnMessage);
+
+        myscript.PostMessage(popupPort, "EndInit");
     }
+
+
 
     const GetJson = async (tabId = null, url = null, key = null, isCacheRefresh = false) => {
         const r = await Promise.all([browser.storage.local.get(), browser.tabs.query({ currentWindow: true, active: true })]);
@@ -316,7 +340,7 @@
 
         const option = r[0];
         //console.log(option);
-        const selectedPreset = GetPreset(option);
+        const selectedPreset = myscript.GetPreset(option);
 
         const selectedKey = selectedPreset.key;
 
@@ -329,7 +353,7 @@
 
         const tabUrl = (await browser.tabs.get(tabId).catch(() => { return {}; })).url;
 
-        const preset = GetPreset(option, key);
+        const preset = myscript.GetPreset(option, key);
         if (preset.isShareJson == null)
             preset.isShareJson = true;
         let outputOption = preset.filename + " " + preset.output + " ";
@@ -355,7 +379,7 @@
         //キャッシュクリア
         if (isCacheRefresh) {
             if (tabUrl == url) {
-                UpdateBrowserActionIcon(false, tabId);
+                myscript.UpdateBrowserActionIcon(false, tabId);
             }
             cache[url] = { "options": {} };
             const str = ReceiveGetJson.name.toString();
@@ -370,17 +394,21 @@
         }
         //json取得中のとき何もしない
         if ((cache[url].json === "Getting" && preset.isShareJson) || cache[url]["options"][key] === "Getting") {
-            if (selectedKey == key && activeTab.id == tabId && activeTab.url == url && isPopupOpen) {
-                browser.runtime.sendMessage("Getting");
+            if (!isPopupOpen)
+                return;
+            if (selectedKey == key && activeTab.id == tabId && activeTab.url == url) {
+                popupPort.postMessage("Getting");
             }
-            console.log("Getting");
+            myscript.PostMessage(popupPort, "Getting");
             return;
         }
 
         //jsonなかったとき
         if ((cache[url].json == "NotFound" && preset.isShareJson) || cache[url]["options"][key] == "NotFound") {
-            if (selectedKey == key && activeTab.id == tabId && activeTab.url == url && isPopupOpen) {
-                browser.runtime.sendMessage("NotFound");
+            if (!isPopupOpen)
+                return;
+            if (selectedKey == key && activeTab.id == tabId && activeTab.url == url) {
+                myscript.PostMessage(popupPort, "NotFound");
             }
             console.log("NotFound");
             return;
@@ -405,7 +433,7 @@
             console.log("Hit Cache");
 
             if (tabUrl == url) {
-                UpdateBrowserActionIcon(true, tabId);
+                myscript.UpdateBrowserActionIcon(true, tabId);
             }
             if (isPopupOpen && selectedKey == key && activeTab.id == tabId && activeTab.url == url) {
                 // console.log(cache);
@@ -413,7 +441,7 @@
                 item.tabId = tabId;
                 item.key = key;
                 item.isF = isF;
-                browser.runtime.sendMessage(item);
+                myscript.PostMessage(popupPort, item);
             }
 
             if (tabUrl != url)
@@ -427,9 +455,9 @@
                     console.log("getjson other option hit: " + k);
 
                     if (await GetJson(tabId, url, k)) {
-                        const p = GetPreset(option, k);
+                        const p = myscript.GetPreset(option, k);
                         if (p.isShareJson != null && !p.isShareJson)
-                            await Sleep(1000);
+                            await myscript.Sleep(1000);
                     }
                 }
             }
@@ -439,7 +467,7 @@
         //オプションのjsonはとってないとき
         if (cache[url].json != null && preset.isShareJson) {
             if (isPopupOpen && selectedKey == key && activeTab.id == tabId && activeTab.url == url) {
-                browser.runtime.sendMessage("Getting");
+                myscript.PostMessage(popupPort, "Getting");
             }
             //console.log(cache);
             console.log("Yes json");
@@ -458,7 +486,7 @@
         }
 
         if (isPopupOpen && selectedKey == key && url == url && tabId == activeTab.id) {
-            browser.runtime.sendMessage("Getting");
+            myscript.PostMessage(popupPort, "Getting");
         }
         //jsonがないとき
         console.log("No Cache");
@@ -492,9 +520,9 @@
         const option = r[0];
         const activeTab = r[1][0];
 
-        const selectedPreset = GetPreset(option);
+        const selectedPreset = myscript.GetPreset(option);
         const key = selectedPreset.key;
-        const preset = GetPreset(option, key);
+        const preset = myscript.GetPreset(option, key);
         if (preset.isShareJson == null) {
             preset.isShareJson = true;
         }
@@ -504,7 +532,7 @@
         const urll = (await browser.tabs.get(res.tabId).catch(() => { return {}; })).url;
 
         if (urll == res.url) {
-            UpdateBrowserActionIcon(res.returnJson != null, res.tabId);
+            myscript.UpdateBrowserActionIcon(res.returnJson != null, res.tabId);
         }
         if (res.returnJson == null) {
             console.log("NotFound");
@@ -516,7 +544,7 @@
             cache[res.url]["options"][res.key] = "NotFound";
             // if (/ERROR:(.+? is not a valid URL.)|(Unsupported URL)/.test(res.stdout)) {
             if (isPopupOpen && res.key == key && activeTab.url == res.url && activeTab.id == res.tabId) {
-                browser.runtime.sendMessage("NotFound");
+                myscript.PostMessage(popupPort, "NotFound");
             }
             // }
         } else {
@@ -535,7 +563,7 @@
             //console.log(res.key);
             if (res.key == key && activeTab.url == res.url && activeTab.id == res.tabId) {
                 if (isPopupOpen) {
-                    browser.runtime.sendMessage(message);
+                    myscript.PostMessage(popupPort, message);
                 }
             }
         }
@@ -551,9 +579,9 @@
                     console.log("getjson other option finish: " + k);
 
                     if (await GetJson(res.tabId, res.url, k)) {
-                        const p = GetPreset(option, k);
+                        const p = myscript.GetPreset(option, k);
                         if (p.isShareJson != null && !p.isShareJson)
-                            await Sleep(1000);
+                            await myscript.Sleep(1000);
                     }
                 }
             }
@@ -571,7 +599,7 @@
         let activeTab = r[1][0];
 
         const option = r[0];
-        const selectedPreset = GetPreset(option);
+        const selectedPreset = myscript.GetPreset(option);
 
         const selectedKey = selectedPreset.key;
 
@@ -582,7 +610,7 @@
         if (e.key == null)
             e.key = selectedKey;
 
-        const preset = GetPreset(option, e.key);
+        const preset = myscript.GetPreset(option, e.key);
 
         let outputOption = preset.output;
 
@@ -623,26 +651,6 @@
             webpage_url: e.json.webpage_url
         });
     }
-    const CanDownload = async (domain) => {
-        const option = await browser.storage.local.get();
-
-        let downloadingCount = 0;
-        for (let key of Object.keys(progresss)) {
-            if (progresss[key].isDownloading == "Download" && ((option.howToCount == null || option.howToCount == "Count all in bulk") || domain == progresss[key].domain))
-                downloadingCount++;
-        }
-
-        if (option.simultaneous == null)
-            option.simultaneous = 2;
-
-        let canDownload = true;
-
-        //console.log(downloadingCount);
-        if (option.simultaneous <= downloadingCount)
-            canDownload = false;
-
-        return canDownload;
-    }
 
     const ReceiveDownloadPrepare = async (res, port) => {
         //console.log(res);
@@ -676,13 +684,9 @@
         };
 
         if (isPopupOpen) {
-            browser.runtime.sendMessage({
-                message: "Progress",
-                progresss: progresss,
-                switchProgressFlag: switchProgressFlag
-            });
+            SendProccess(id)
         }
-        UpdateBadgeText();
+        myscript.UpdateBadgeText(GetDownloadProgressCount().toString());
         if (canDownload) {
             res.messageToSend.messageToSend = JSON.parse(JSON.stringify(res.messageToSend));
             //console.log(res);
@@ -691,8 +695,38 @@
             waitProgress.push(progresss[res.webpage_url + res.messageToSend.key]);
         }
     }
+
     const progresss = {};
     let waitProgress = [];
+    const GetDownloadProgressCount = ()=>{
+        let count = 0;
+        for (let key of Object.keys(progresss)) {
+            if (progresss[key].isDownloading == "Download")
+                count++;
+        }
+        return count;
+    }
+    const CanDownload = async (domain) => {
+        const option = await browser.storage.local.get();
+
+        let downloadingCount = 0;
+        for (let key of Object.keys(progresss)) {
+            if (progresss[key].isDownloading == "Download" && ((option.howToCount == null || option.howToCount == "Count all in bulk") || domain == progresss[key].domain))
+                downloadingCount++;
+        }
+
+        if (option.simultaneous == null)
+            option.simultaneous = 2;
+
+        let canDownload = true;
+
+        //console.log(downloadingCount);
+        if (option.simultaneous <= downloadingCount)
+            canDownload = false;
+
+        return canDownload;
+    }
+
     const downloadMatchReg = /^\[download\]\s+(.+?)%\s+of\s+(.+?)\s+at\s+(.+?)\s+ETA\s+(.+)$/;
 
     const ReceiveDownload = async (res, port) => {
@@ -719,10 +753,7 @@
                 ETA: matchs[4]
             };
             if (isPopupOpen) {
-                browser.runtime.sendMessage({
-                    message: "Progress",
-                    progresss: progresss
-                });
+                SendProccess();
             }
             return;
         }
@@ -749,7 +780,7 @@
                         NoticeDownloadStatus(res, true, "Worning download.\nThe download is not progressing at all, so i will exit.", res.json._filename);
                         progresss[res.webpage_url + res.key].isDownloading = "Worning";
                     }
-                    UpdateBadgeText();
+                    myscript.UpdateBadgeText(GetDownloadProgressCount().toString());
                     return;
                 } else {
                     progresss[res.webpage_url + res.key].isDownloading = "Worning";
@@ -768,7 +799,7 @@
 
             }
             console.log("endDownloading");
-            UpdateBadgeText();
+            myscript.UpdateBadgeText(GetDownloadProgressCount().toString());
         }
 
 
@@ -781,7 +812,7 @@
         if (res.status == "NotOverwritten") {
             NoticeDownloadStatus(res, true, "Did not overwrite", `${res.filePath}\n is already exists.`);
             progresss[res.webpage_url + res.key].isDownloading = "Finish";
-            UpdateBadgeText();
+            myscript.UpdateBadgeText(GetDownloadProgressCount().toString());
         }
         if (res.status == "Overwritten") {
             NoticeDownloadStatus(res, true, "Overwritten", `${res.filePath}`);
@@ -807,6 +838,15 @@
 
         }
 
+    }
+    const SendProccess = (id = null) => {
+        const message = {
+            message: "Progress",
+            progresss: progresss,
+            switchProgressFlag: switchProgressFlag
+        };
+
+        myscript.PostMessage(popupPort, message, id);
     }
     //通知だす
     function NoticeDownloadStatus(res, showExplorerLink, title, message) {
@@ -837,7 +877,7 @@
     //通知クリックでディレクトリ開く
     browser.notifications.onClicked.addListener(async id => {
         // console.log(id)
-        if (id == "UpdateYoutube_dlForExtension") {
+        if (id == "FailUpdateYoutube_dlForExtension") {
             browser.tabs.create({
                 active: true,
                 url: "https://drive.google.com/drive/u/1/folders/1Z2t8F5grpS4x_o54yuQMIJ01YrI16YBm"
@@ -873,6 +913,9 @@
         console.log(res);
     }
 
+
+
+
     //ディレクトリ選択画面を出す プロミス
     const SelectDirectoryAsync = (e) => {
         return new Promise(async resolve => {
@@ -884,7 +927,7 @@
             if (res.status == "success") {
                 return resolve(res.dir/*.replace(/\//g, "\\\\")*/);
             }
-            resolve(null);
+            resolve("");
 
         });
     }
@@ -968,12 +1011,12 @@
             if (changeInfo.url != null) {
                 console.log(changeInfo);
                 while (getjsonInterval)
-                    await Sleep(1000);
+                    await myscript.Sleep(1000);
 
                 getjsonInterval = true;
                 console.log("listener");
                 await GetJson(tab.id, tab.url);
-                await Sleep(1000);
+                await myscript.Sleep(1000);
                 getjsonInterval = false;
             }
         };

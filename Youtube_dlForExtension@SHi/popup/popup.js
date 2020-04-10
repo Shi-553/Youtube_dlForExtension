@@ -1,23 +1,24 @@
 
 let switchProgressFlag = false;
-
-window.addEventListener("DOMContentLoaded", async () => {
+const main = async () => {
 
     const ul = document.getElementById("list");
     let item = null, progresss = null;
     //�o�b�N�O���E���h����
-    browser.runtime.onMessage.addListener(e => {
-        //console.log(e);
-        if (e.message == "Progress") {
-            progresss = e.progresss;
-            if (e.switchProgressFlag != null)
-                switchProgressFlag = e.switchProgressFlag;
+    port.onMessage.addListener(e => {
+        console.log(e);
+        const m = e.message;
+
+        if (m.message == "Progress") {
+            progresss = m.progresss;
+            if (m.switchProgressFlag != null)
+                switchProgressFlag = m.switchProgressFlag;
 
             if (switchProgressFlag)
                 SetProgress();
             return;
         }
-        item = e;
+        item = m;
 
         if (!switchProgressFlag)
             SetItem();
@@ -52,6 +53,16 @@ window.addEventListener("DOMContentLoaded", async () => {
             ul.appendChild(message);
             return;
         }
+        if (item === "Init") {
+            message.textContent = "Initializing...";
+            ul.appendChild(message);
+            return;
+        }
+        if (item === "EndInit") {
+            myscript.PostMessage(port, { isOpen: true });
+            return;
+        }
+
         const option = await browser.storage.local.get();
         const s = (option.preset != null && option.selectedPreset != null) ? option.preset[option.selectedPreset] : null;
         s.output = " " + s.output + " ";
@@ -291,9 +302,9 @@ window.addEventListener("DOMContentLoaded", async () => {
             flexBoxParent.appendChild(toggle);
             toggle.addEventListener("click", () => {
                 if (p.isDownloading == "Download" || p.isDownloading == "Wait") {
-                    browser.runtime.sendMessage({ stopDownload: true, progress: p });
+                    myscript.PostMessage(port, { stopDownload: true, progress: p });
                 } else {
-                    browser.runtime.sendMessage({ restartDownload: true, progress: p });
+                    myscript.PostMessage(port, { restartDownload: true, progress: p });
                 }
             });
 
@@ -315,7 +326,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
         const selectFormat = inputSelectFormat != null ? inputSelectFormat.value : null;//inputSelectFormat.valueがnullならキャンセル
         if (selectFormat == "") {
-            browser.runtime.sendMessage({
+            myscript.PostMessage(port, {
                 noticeDownloadStatus: true,
                 res: item,
                 showExplorerLink: false,
@@ -333,7 +344,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         download.removeEventListener("mousedown", Download);
 
         if (option.mainDownloadDirectory == null || option.subDownloadDirectory == null) {
-            const userName = await browser.runtime.sendMessage({ isGetUserPofile: true });
+            const userName = await myscript.PostMessage(port, { isGetUserProfile: true });
             if (option.mainDownloadDirectory == null)
                 option.mainDownloadDirectory = userName + "\\Downloads";
             if (option.subDownloadDirectory == null)
@@ -342,7 +353,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         try {
             // console.log(url)
             if (e.which != 2) {
-                browser.runtime.sendMessage({
+                myscript.PostMessage(port, {
                     isDownload: true,
                     json: item,
                     selectFormat: selectFormat,
@@ -350,7 +361,7 @@ window.addEventListener("DOMContentLoaded", async () => {
                 });
                 return;
             }
-            browser.runtime.sendMessage({
+            myscript.PostMessage(port, {
                 isDownload: true,
                 json: item,
                 selectFormat: selectFormat,
@@ -406,7 +417,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             key: selectPreset.value,
             isCacheRefresh: isCacheRefresh
         };
-        browser.runtime.sendMessage(message);
+        myscript.PostMessage(port, message);
     }
 
     //�v���Z�b�g�`�F���W
@@ -423,7 +434,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
     //�X�g�b�v�I�[���_�E�����[�h�N���b�N
     document.getElementById("stopDownload").addEventListener("click", () => {
-        browser.runtime.sendMessage({ isStopDownloadAll: true });
+        myscript.PostMessage(port, { isStopDownloadAll: true });
     });
     //�L���b�V���N���A�[�N���b�N
     document.getElementById("cacheRefresh").addEventListener("click", () => {
@@ -433,7 +444,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("switch").addEventListener("click", () => {
         ul.textContent = "";
         switchProgressFlag = !switchProgressFlag;
-        browser.runtime.sendMessage({ switchProgressFlag: switchProgressFlag });
+        myscript.PostMessage(port, { switchProgressFlag: switchProgressFlag });
 
         if (switchProgressFlag) {
             SetProgress();
@@ -443,8 +454,30 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
     //�A�����[�h
     window.onunload = () => {
-        browser.runtime.sendMessage({ isClose: true, selectedPreset: savePreset });
+        myscript.PostMessage(port, { isClose: true, selectedPreset: savePreset });
     }
 
-    browser.runtime.sendMessage({ isOpen: true });
+    myscript.PostMessage(port, { isOpen: true });
+};
+
+
+const port = browser.runtime.connect("Youtube_dlForExtension@SHi", { name: "popup" });
+
+window.addEventListener("DOMContentLoaded", async () => {
+    const onMessage = e => {
+        if (e.message == "Init") {
+            document.getElementById("message").textContent = "Initializing...";
+            document.getElementById("main").style.display = "None";
+
+        } else {
+            document.getElementById("message").textContent = "";
+            document.getElementById("main").style.display = "block";
+
+            port.onMessage.removeListener(onMessage);
+            main();
+
+        }
+    }
+    port.onMessage.addListener(onMessage);
+    myscript.PostMessage(port, { isGetInitStatus: true });
 });

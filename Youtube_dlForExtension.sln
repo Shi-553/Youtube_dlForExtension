@@ -14,6 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extension", "Extension", "{
 		Youtube_dlForExtension@SHi\background.js = Youtube_dlForExtension@SHi\background.js
 		Youtube_dlForExtension@SHi\jsconfig.json = Youtube_dlForExtension@SHi\jsconfig.json
 		Youtube_dlForExtension@SHi\manifest.json = Youtube_dlForExtension@SHi\manifest.json
+		Youtube_dlForExtension@SHi\myscript.js = Youtube_dlForExtension@SHi\myscript.js
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Native", "Native", "{2FD7B3A3-04E3-424B-B7AF-6AEF60945B4F}"

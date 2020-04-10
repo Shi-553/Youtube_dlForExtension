@@ -6,27 +6,31 @@
     <link rel="stylesheet" type="text/css" href="popup.css">
     <script src="backgroundImage.js"></script>
 </head>
-<body >
-    
+<body>
+    <div id="message">
+
+    </div>
+    <main id="main">
+
         <select id="selectPreset" style="width:100px"></select>
         <input id="saveSelectedPreset" type="button" value="Save">
         <input id="stopDownload" type="button" value="Stop all downloads">
         <input id="cacheRefresh" type="button" value="Cache refresh">
 
-    <ol id="list" type="number">
-        
-    </ol>
+        <ol id="list" type="number">
+        </ol>
 
-    <footer>
-        <button id="toOption">
-            Option
-        </button>
-        <button id="switch">
-            Switch
-        </button>
-    </footer>
+        <footer>
+            <button id="toOption">
+                Option
+            </button>
+            <button id="switch">
+                Switch
+            </button>
+        </footer>
+    </main>
 
-   
+    <script src="../myscript.js"></script>
     <script src="popup.js"></script>
 </body>
 </html>
