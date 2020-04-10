@@ -2,6 +2,7 @@
 import os
 import urllib.request
 import time
+import traceback
 
 
 try:
@@ -16,6 +17,7 @@ try:
         filename = "Youtube_dlForExtension.exe"
     else:
         print("not open file\n")
+        sys.stdout.flush()
         sys.exit()
 
 
@@ -45,5 +47,7 @@ try:
         
 
 except Exception as e:
+    print("error\n")
+    sys.stdout.flush()
     with open("log.txt","a") as f:
-        f.write(str(e) + "\n")
+        f.write(traceback.format_exc());
