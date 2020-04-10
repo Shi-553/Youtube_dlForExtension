@@ -1,20 +1,29 @@
 
 const myscript = {};
-(()=>{
-    let nextId = 0;
+(() => {
     myscript.PostMessage = async (port, message = null, id = null) => {
-        console.log(message, id);
+        const isNewId = id == null;
+
         if (port == null) {
             console.error("port null");
             return;
         }
         if (id == null) {
-            id = nextId;
-            nextId++;
+            const idStr = (await browser.storage.local.get("messageId")).messageId;
+
+            if (idStr != null) {
+                id = parseInt(idStr);
+                id++;
+            }
+            if (idStr == null || 100 < id) {
+                id = 0;
+            }
+            await browser.storage.local.set({ messageId: id });
         }
         if (message == null) {
             message = {};
         }
+        console.log(message, id, isNewId);
         return new Promise(r => {
             const callback = e => {
                 if (e.id == id) {
@@ -58,7 +67,7 @@ const myscript = {};
     }
 
     myscript.UpdateBadgeText = (str) => {
-        if (str==null||str == "0")
+        if (str == null || str == "0")
             str = "";
         browser.browserAction.setBadgeText(str);
     }

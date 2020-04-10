@@ -1,4 +1,3 @@
-
 (async () => {
     //プロミス版 await で繋げられるが複数回返せない
     const SendNativePromise = async (toSendName, message, isSuppressEror = false) => {
@@ -62,8 +61,8 @@
 
 
     //バージョン確認
-    const res = await SendNativePromise("GetVersion", {}, true);
-    if (res == null) {
+    const getVersionBeforeRes = await SendNativePromise("GetVersion", {}, true);
+    if (getVersionBeforeRes == null) {
         browser.notifications.create("UpdateYoutube_dlForExtension", {
             type: "basic",
             iconUrl: "image/icon_enable64.png",
@@ -75,21 +74,35 @@
 
     const latestVersion = "1.5";
     //最新バージョンじゃなかったら更新
-    if (res.version != latestVersion) {
-        if (await SendNativePromise("Update", {}, true) == null) {
+    if (getVersionBeforeRes.version != latestVersion) {
+        const updateRes = await SendNativePromise("Update", {}, true);
+        await myscript.Sleep(3000);
+
+        //ちゃんと更新されたか確認
+        let getVersionAfterRes = null, i = 0;
+        if (updateRes != null) {
+            while (i < 5) {
+                getVersionAfterRes = await SendNativePromise("GetVersion", {}, true);
+                if (getVersionAfterRes != null)
+                    break;
+                await myscript.Sleep(1000);
+                i++;
+            }
+        }
+
+        if (updateRes == null || getVersionAfterRes == null || getVersionBeforeRes.version == getVersionAfterRes.version) {
             browser.notifications.create("FailUpdateYoutube_dlForExtension", {
                 type: "basic",
                 iconUrl: "image/icon_enable64.png",
                 title: "Failed to communicate with updater",
-                message: "Sorry.\nUpdater has a bug and\nneed for update again."
+                message: "Sorry.\nUpdater has a bug and\nneed for update again.\nClick..."
             });
         } else {
-            await myscript.Sleep(3000);
             browser.notifications.create("UpdateYoutube_dlForExtension", {
                 type: "basic",
                 iconUrl: "image/icon_enable64.png",
                 title: "Native programs update ",
-                message: res.version + " to " + latestVersion
+                message: getVersionBeforeRes.version + " to " + getVersionAfterRes.version
             });
         }
     } else {
@@ -97,16 +110,10 @@
     }
 
 
-    //youtube-dlの設定
-    let r = null, i = 0;
-    while (i < 5) {
-        r = await SendNativePromise("UpdateYoutube_dl", {}, true);
-        if (r != null)
-            break;
-        await myscript.Sleep(1000);
-        i++;
-    }
-    console.log(r, i);
+    //youtube-dlの更新
+    const r = await SendNativePromise("UpdateYoutube_dl", {}, true);
+    console.log(r);
+
     if (/Updated youtube-dl/.test(r.stdout)) {
         browser.notifications.create("UpdateYoutube_dl", {
             type: "basic",
@@ -121,7 +128,7 @@
     let userProfile;
 
     const optionsOnMessage = async (e) => {
-        console.log(e);
+        //console.log(e);
         const m = e.message, id = e.id;
 
         if (m.isUpdateTabListener) {
@@ -166,7 +173,7 @@
 
     }
     const popupOnMessage = async (e) => {
-        console.log(e);
+        //console.log(e);
         const m = e.message, id = e.id;
 
         if (m.noticeDownloadStatus != null) {
@@ -698,7 +705,7 @@
 
     const progresss = {};
     let waitProgress = [];
-    const GetDownloadProgressCount = ()=>{
+    const GetDownloadProgressCount = () => {
         let count = 0;
         for (let key of Object.keys(progresss)) {
             if (progresss[key].isDownloading == "Download")
