@@ -87,7 +87,9 @@ def InstallYoutube_dl(folderPath,isFfmpeg,callback):
                     for x in list:
                         if "ffmpeg.exe" in x:
                             shutil.move(x,folderPath + "Youtube_dlForExtension\\ffmpeg.exe")
-                            break
+
+                        if "ffprobe.exe" in x:
+                            shutil.move(x,folderPath + "Youtube_dlForExtension\\ffprobe.exe")
 
     except Exception as err:
         callback({"error":True,"finish":True,"message":str(err)})
