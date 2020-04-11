@@ -12,6 +12,7 @@ import platform
 import traceback
 import zipfile
 from io import BytesIO
+#import youtube_dl
 
 pf = platform.system()
 
@@ -47,9 +48,7 @@ def urlToFilename(url):
     return re.sub(r'[\\|/|:|?|.|"|<|>|\|]',"_",url)[:90]
 
 #JSONファイルに書き出す
-def writeJson(p,dictionary,isCacheRefresh):
-    if not isCacheRefresh and path.isfile(p):
-        return
+def writeJson(p,dictionary):
     
     #フォルダがないとき
     dir = path.join(absDirectoryPath, "JSONCache")
@@ -116,7 +115,7 @@ def To_Youtube_dl(receivedMessage):
     absPath = path.normpath(path.join(absDirectoryPath, "JSONCache\{}.json".format(urlToFilename(receivedMessage["url"]+str(receivedMessage["tabId"])+receivedMessage["key"]))))
     if "json" in receivedMessage:
         receivedMessage["command"] = receivedMessage["command"].replace("<JSONPATH>",absPath,1)
-        writeJson(absPath,receivedMessage["json"],receivedMessage["isCacheRefresh"])
+        writeJson(absPath,receivedMessage["json"])
         #print(receivedMessage["command"], file=sys.stderr)
             
    # sendMessage(encodeMessage(receivedMessage))
@@ -137,7 +136,7 @@ def To_Youtube_dl(receivedMessage):
     if (("usePopen" in receivedMessage) and (receivedMessage["usePopen"])):
         receivedMessage["filePath"]=path.join(receivedMessage["dir"],receivedMessage["json"]["_filename"])
         if(path.isfile(receivedMessage["filePath"])):
-            if receivedMessage["overwrite"] is None:
+            if receivedMessage["overwrite"] == "Show dialog to select":
                 receivedMessage["status"] = "AskOverwrite"
                 sendMessage(encodeMessage(receivedMessage))
                 #p=directoryManager({"path":receivedMessage["filePath"],"isSelect":True},True)
@@ -153,7 +152,7 @@ def To_Youtube_dl(receivedMessage):
             elif receivedMessage["overwrite"] == "Save as":
                 receivedMessage["status"] = "Save as"
                 sendMessage(encodeMessage(receivedMessage))
-                receivedMessage["overwrite"] = None
+                receivedMessage["overwrite"] = "Show dialog to select"
                 receivedMessage["dir"] = directoryManager({"initialDir":receivedMessage["dir"]},True)
 
                 if receivedMessage["dir"] == "":
@@ -209,9 +208,7 @@ def To_Youtube_dl(receivedMessage):
         if " -j " in receivedMessage["command"]:
             try:
                 receivedMessage["returnJson"] = json.loads(receivedMessage["stdout"])
-                #if not "json" in receivedMessage:
-                #    absPath = path.join(absDirectoryPath, "JSONCache\{}.json".format(urlToFilename(receivedMessage["url"])))
-                #    writeJson(absPath,receivedMessage["returnJson"],receivedMessage["isCacheRefresh"])
+
             except json.JSONDecodeError as e:
                receivedMessage["e"] = str(e)
             
@@ -545,7 +542,7 @@ exit
 
 
 def GetVersion():
-    receivedMessage["version"] = "1.5"
+    receivedMessage["version"] = "1.5.1"
     sendMessage(encodeMessage(receivedMessage))
 
         

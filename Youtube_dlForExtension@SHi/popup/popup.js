@@ -1,71 +1,72 @@
 
-let switchProgressFlag = false;
 const main = async () => {
+    let switchItemProgressFlag = (await browser.storage.local.get("switchItemProgressFlag")).switchItemProgressFlag || false;
 
     const ul = document.getElementById("list");
+
     let item = null, progresss = null;
+
     //�o�b�N�O���E���h����
     port.onMessage.addListener(e => {
-        console.log(e);
-        const m = e.message;
+        //console.log(e);
+        const m = e.body;
 
-        if (m.message == "Progress") {
+        if (m.progresss != null) {
             progresss = m.progresss;
-            if (m.switchProgressFlag != null)
-                switchProgressFlag = m.switchProgressFlag;
 
-            if (switchProgressFlag)
+            if (switchItemProgressFlag)
                 SetProgress();
             return;
         }
-        item = m;
 
-        if (!switchProgressFlag)
-            SetItem();
+        if (m.item != null) {
+            item = m.item;
+            if (!switchItemProgressFlag)
+                SetItem();
+            return;
+        }
+
+        if (m.message == "EndInit") {
+            myscript.PostMessage(port, { isOpen: true });
+            return;
+        }
     });
-    //to�I�v�V�����N���b�N
+
+    //オプションページに飛ぶ
     document.getElementById("toOption").addEventListener("click", () => {
         browser.runtime.openOptionsPage();
+        close();
     });
 
     const SetItem = async () => {
-        if (item == null)
-            return;
-
-        ul.textContent = "";
-
         const message = document.getElementById("message") || document.createElement("div");
         message.className = "message";
         message.id = "message";
 
-        if (item === "Getting") {
+        if (item == "Getting") {
+            ul.textContent = "";
             message.textContent = "Getting now...";
             ul.appendChild(message);
             return;
         }
-        if (item === "GettingAgain") {
+        if (item == "GettingAgain") {
+            ul.textContent = "";
             message.textContent = "Getting again now...";
             ul.appendChild(message);
             return;
         }
-        if (item === "NotFound") {
+        if (item == "NotFound") {
+            ul.textContent = "";
             message.textContent = "Not found.";
             ul.appendChild(message);
             return;
         }
-        if (item === "Init") {
-            message.textContent = "Initializing...";
-            ul.appendChild(message);
-            return;
-        }
-        if (item === "EndInit") {
-            myscript.PostMessage(port, { isOpen: true });
+
+        if (item == null || item.url == null || item.key == null) {
             return;
         }
 
-        const option = await browser.storage.local.get();
-        const s = (option.preset != null && option.selectedPreset != null) ? option.preset[option.selectedPreset] : null;
-        s.output = " " + s.output + " ";
+        ul.textContent = "";
 
         const newItem = document.createElement("li");
         newItem.style.width = "360px";
@@ -107,9 +108,10 @@ const main = async () => {
         download.className = "download";
         download.type = "button";
 
+
         //console.log(progresss);
         //console.log(item);
-        if (progresss != null && progresss[item.webpage_url + item.key] != null && (progresss[item.webpage_url + item.key].isDownloading == "Download" || progresss[item.webpage_url + item.key].isDownloading == "Wait")) {
+        if (progresss != null && progresss[item.url + item.key] != null && (progresss[item.url + item.key].isDownloading == "Download" || progresss[item.url + item.key].isDownloading == "Wait")) {
             download.value = "Downloading...";
         } else {
             download.addEventListener("contextmenu", e => e.preventDefault());
@@ -137,7 +139,8 @@ const main = async () => {
             detail.appendChild(abr);
         }
 
-        if (/ -F /.test(s.output)) {
+
+        if (item.isF) {
             const selectFormat = document.createElement("div");
             selectFormat.className = "selectFormat";
             selectFormat.textContent = "-f ";
@@ -236,6 +239,7 @@ const main = async () => {
             filename.value = item.option != null ? item.option : "";
             item._filename = item.option != null ? item.option : "";
         });
+
         const format_ids = ul.getElementsByClassName("format_id");
         for (let format_id of format_ids) {
             format_id.addEventListener("click", e => { ul.getElementsByClassName("inputSelectFormat")[0].value += ((format_id.classList.contains("video")) ? (format_id.value + "+") : format_id.value); });
@@ -252,14 +256,17 @@ const main = async () => {
 
     const SetProgress = () => {
         ul.textContent = "";
-        let keys;
-        if (progresss == null || (keys = Object.keys(progresss)).length == 0) {
+
+        const keys = Object.keys(progresss);
+
+        if (progresss == null || keys.length == 0) {
             const message = document.createElement("div");
             message.className = "message";
             message.textContent = "Not Downloaded.";
             ul.appendChild(message);
             return;
         }
+
         //console.log(progresss);
         for (var key of keys) {
             const p = progresss[key];
@@ -267,6 +274,7 @@ const main = async () => {
 
             const newItem = document.createElement("li");
             newItem.className = "item";
+            newItem.id = p.url + p.key;
             newItem.style.width = "400px";
             ul.appendChild(newItem);
 
@@ -300,7 +308,8 @@ const main = async () => {
             toggle.value = (p.isDownloading == "Download" || p.isDownloading == "Wait") ? "Stop" : "Download";
             toggle.type = "button";
             flexBoxParent.appendChild(toggle);
-            toggle.addEventListener("click", () => {
+
+            toggle.addEventListener("pointerdown", () => {
                 if (p.isDownloading == "Download" || p.isDownloading == "Wait") {
                     myscript.PostMessage(port, { stopDownload: true, progress: p });
                 } else {
@@ -324,8 +333,9 @@ const main = async () => {
     const Download = async (e) => {
         const inputSelectFormat = ul.getElementsByClassName("inputSelectFormat")[0];
 
-        const selectFormat = inputSelectFormat != null ? inputSelectFormat.value : null;//inputSelectFormat.valueがnullならキャンセル
-        if (selectFormat == "") {
+        const selectFormat = item.isF ? inputSelectFormat.value : null;
+
+        if (item.isF && selectFormat == "") {
             myscript.PostMessage(port, {
                 noticeDownloadStatus: true,
                 res: item,
@@ -335,50 +345,25 @@ const main = async () => {
             });
             return;
         }
-        const option = await browser.storage.local.get();
+
         const filename = ul.getElementsByClassName("filename")[0].value;
 
-        item.downloadFilename = ul.getElementsByClassName("addO")[0].checked ? "-o \"" + filename + "\"" : filename;
         const download = document.getElementsByClassName("download")[0];
         download.value = "Downloading...";
         download.removeEventListener("mousedown", Download);
 
-        if (option.mainDownloadDirectory == null || option.subDownloadDirectory == null) {
-            const userName = await myscript.PostMessage(port, { isGetUserProfile: true });
-            if (option.mainDownloadDirectory == null)
-                option.mainDownloadDirectory = userName + "\\Downloads";
-            if (option.subDownloadDirectory == null)
-                option.subDownloadDirectory = userName + "\\Videos";
-        }
-        try {
-            // console.log(url)
-            if (e.which != 2) {
-                myscript.PostMessage(port, {
-                    isDownload: true,
-                    json: item,
-                    selectFormat: selectFormat,
-                    downloadDirectory: (e.which == 1 ? option.mainDownloadDirectory : option.subDownloadDirectory)
-                });
-                return;
-            }
-            myscript.PostMessage(port, {
-                isDownload: true,
-                json: item,
-                selectFormat: selectFormat,
-                initialDir: option.mainDownloadDirectory
-            });
-        } catch (err) {
-            console.error(err);
-            console.error(e);
-        }
+
+        // console.log(url)
+        myscript.PostMessage(port, {
+            key: selectPreset.value,
+            filename: ul.getElementsByClassName("addO")[0].checked ? "-o \"" + filename + "\"" : filename,
+            url: item.url,
+            isDownload: true,
+            json: item,
+            selectFormat: selectFormat,
+            which: e.which
+        });
     }
-
-
-    const option = await browser.storage.local.get();
-    option.selectedPreset = option.selectedPreset != null ? option.selectedPreset : "Default";
-    let savePreset = option.selectedPreset;
-    const selectPreset = document.getElementById("selectPreset");
-    const saveSelectedPreset = document.getElementById("saveSelectedPreset");
 
     const AddSelectOption = (key) => {
         const o = document.createElement("option");
@@ -387,30 +372,25 @@ const main = async () => {
         selectPreset.add(o);
     }
 
-    if (option.preset != null) {
-        for (let key of Object.keys(option.preset)) {
-            AddSelectOption(key);
-        }
-        const e = selectPreset.querySelector(`[value = '${option.selectedPreset}']`);
-        if (e != null)
-            e.selected = true;
-    } else {
-        await browser.storage.local.set({
-            preset: {
-                Default: { filename: "", output: "", option: "", isShareJson: true }
-            },
-            selectedPreset: "Default"
-        });
-        option.preset = {
-            Default: { filename: "", output: "", option: "", isShareJson: true }
-        };
-        option.selectedPreset = "Default";
-        AddSelectOption("Default");
+    const option = await browser.storage.local.get();
+
+    const selectPreset = document.getElementById("selectPreset");
+    const saveSelectedPreset = document.getElementById("saveSelectedPreset");
+
+
+    for (let key of Object.keys(option.preset)) {
+        AddSelectOption(key);
     }
+    const e = selectPreset.querySelector(`[value = '${option.selectedPreset}']`);
+    if (e != null)
+        e.selected = true;
+    browser.storage.local.set({
+        temporarySelectedPreset: selectPreset.value
+    });
 
     const GetJson = (isCacheRefresh) => {
-        const url = item != null ? item.webpage_url : null;
-
+        const url = item != null ? item.url : null;
+        //console.log(item);
         const message = {
             isGetJson: true,
             url: url,
@@ -422,16 +402,17 @@ const main = async () => {
 
     //�v���Z�b�g�`�F���W
     selectPreset.addEventListener("change", async () => {
-        option.selectedPreset = selectPreset.value;
-        browser.storage.local.set({
-            selectedPreset: option.selectedPreset
+        await browser.storage.local.set({
+            temporarySelectedPreset: selectPreset.value
         });
         GetJson(false);
     });
     //�Z�[�u�v���Z�b�g�N���b�N
     saveSelectedPreset.addEventListener("click", () => {
-        savePreset = option.selectedPreset;
-    });
+        browser.storage.local.set({
+            selectedPreset: selectPreset.value
+        });
+    })
     //�X�g�b�v�I�[���_�E�����[�h�N���b�N
     document.getElementById("stopDownload").addEventListener("click", () => {
         myscript.PostMessage(port, { isStopDownloadAll: true });
@@ -442,20 +423,18 @@ const main = async () => {
         ul.innerHTML = "";
     });
     document.getElementById("switch").addEventListener("click", () => {
+        console.log(item);
         ul.textContent = "";
-        switchProgressFlag = !switchProgressFlag;
-        myscript.PostMessage(port, { switchProgressFlag: switchProgressFlag });
+        switchItemProgressFlag = !switchItemProgressFlag;
 
-        if (switchProgressFlag) {
+        browser.storage.local.set({ switchItemProgressFlag: switchItemProgressFlag });
+
+        if (switchItemProgressFlag) {
             SetProgress();
         } else {
             SetItem();
         }
     });
-    //�A�����[�h
-    window.onunload = () => {
-        myscript.PostMessage(port, { isClose: true, selectedPreset: savePreset });
-    }
 
     myscript.PostMessage(port, { isOpen: true });
 };
@@ -465,7 +444,7 @@ const port = browser.runtime.connect("Youtube_dlForExtension@SHi", { name: "popu
 
 window.addEventListener("DOMContentLoaded", async () => {
     const onMessage = e => {
-        if (e.message == "Init") {
+        if (e.body.message == "Init") {
             document.getElementById("message").textContent = "Initializing...";
             document.getElementById("main").style.display = "None";
 

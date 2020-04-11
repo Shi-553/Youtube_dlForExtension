@@ -2,9 +2,9 @@
 
   "manifest_version": 2,
   "name": "Youtube-dlForExtension",
-  "version": "2.0.0.1",
+  "version": "2.0.0.4",
 
-  "description": "Attention\n This add-on alone does not work.\n Because I only have a Windows PC, You need to install Python3.7.4 or higher to use it on other operating systems. Please understand.\n\nYoutube-dl is a command-line program for downloading videos and music from YouTube and other sites.\nhttps://ytdl-org.github.io/youtube-dl/\n\nYoutube-dlForExtension is the one that made this easy to use from Firefox.\nTherefore, you need to communicate with Youtube-dl.\nHowever it requires a file download and registry changes to communicate.\n\nLook at ' Youtube-dlForExtension/your platform/readme.txt ' from here.\nhttps://drive.google.com/drive/folders/1Z2t8F5grpS4x_o54yuQMIJ01YrI16YBm?usp=sharing\n\nThe installation method is written there.\n\nSetup support&Requests&Bugs, etc.\n  SHiii0410223@gmail.com",
+  "description": "Attention\nThis add-on alone does not work.\nLook at the description.\n\nYoutube-dl is a command-line program for downloading videos and music from YouTube and other sites.\nYoutube-dlForExtension is the one that made this easy to use from Firefox.\nYou need to communicate with Youtube-dl.\nHowever it requires a file download and (win:registry changes)(others:Python3.7.4 or higher install) to communicate.\n\nLook at ' Youtube-dlForExtension/your platform/readme.txt ' from here.\n(Windows 32-bit has been supported.)\nhttps://drive.google.com/drive/folders/1Z2t8F5grpS4x_o54yuQMIJ01YrI16YBm?usp=sharing\n\nThe installation method is written there.\n\nSetup support&Requests&Bugs, etc.\n  SHiii0410223@gmail.com\nor\n  https://github.com/Shi-553/Youtube_dlForExtension\n\n[new]\nInstaller for windows is now ready.\nIt's easier to set up.",
 
   "permissions": [
     "notifications",

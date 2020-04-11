@@ -40,52 +40,35 @@ const main = () => {
         const option = await browser.storage.local.get();
         //console.log(option);
 
-        if (option.mainDownloadDirectory != null)
-            setMainDownloadDirectory.value = option.mainDownloadDirectory;
+        setMainDownloadDirectory.value = option.mainDownloadDirectory;
 
-        if (option.subDownloadDirectory != null)
-            setSubDownloadDirectory.value = option.subDownloadDirectory;
+        setSubDownloadDirectory.value = option.subDownloadDirectory;
 
-        if (option.isDisableHealthyNotification != null)
-            setIsDisableHealthyNotification.checked = option.isDisableHealthyNotification;
+        setIsDisableHealthyNotification.checked = option.isDisableHealthyNotification;
 
-        if (option.overwrite != null)
-            setOverwrite.value = option.overwrite;
+        setOverwrite.value = option.overwrite;
 
-        if (option.simultaneous != null)
-            setSimultaneous.value = option.simultaneous.toString();
+        setSimultaneous.value = option.simultaneous.toString();
 
-        if (option.howToCount != null)
-            setHowToCount.value = option.howToCount;
+        setHowToCount.value = option.howToCount;
 
-        if (option.isAutoRetry != null)
-            setIsAutoRetry.checked = option.isAutoRetry;
+        setIsAutoRetry.checked = option.isAutoRetry;
 
         setBackgroundImage.style.opacity = 0;
         if (option.backgroundImageFile != null)
             preview.textContent = option.backgroundImageFile.name;
 
-        if (option.setUrls != null)
-            setUrls.value = option.setUrls;
+        setUrls.value = option.urls.join(",\n")
         // console.log(option)
-        if (option.selectedPreset != null && option.preset != null && option.preset.Default != null && option.preset[option.selectedPreset].output != null && option.preset[option.selectedPreset].option != null) {
-            for (let key of Object.keys(option.preset)) {
-                AddSelectOption(key);
-            }
-            const e = selectPreset.querySelector(`[value = '${option.selectedPreset}']`);
-            if (e != null)
-                e.selected = true;
-            changeSelectPreset(option);
-
-        } else {
-            browser.storage.local.set({
-                preset: {
-                    Default: { filename: "", output: "", option: "", isShareJson: true }
-                },
-                selectedPreset: "Default"
-            });
-            AddSelectOption("Default");
+        for (let key of Object.keys(option.preset)) {
+            AddSelectOption(key);
         }
+        const e = selectPreset.querySelector(`[value = '${option.selectedPreset}']`);
+        if (e != null)
+            e.selected = true;
+        changeSelectPreset(option);
+
+
     })();
     const AddSelectOption = (key) => {
         const o = document.createElement("option");
@@ -94,8 +77,9 @@ const main = () => {
         selectPreset.add(o);
     }
 
-    (async() => {
-        const userProfile = await myscript.PostMessage(port, { isGetUserProfile: true });
+    (async () => {
+        const userProfile = (await myscript.PostMessage(port, { isGetUserProfile: true }));//.userProfile;
+
         if (userProfile == null)
             return;
 
@@ -115,11 +99,7 @@ const main = () => {
         setMainDownloadDirectory.addEventListener("change", mainDownloadDirectoryUpdate);
 
         document.getElementById("selectMainDirectory").addEventListener("click", async () => {
-            const e = await myscript.PostMessage(port, { isSelectDirectory: true, initialDir: setMainDownloadDirectory.value });
-
-            if (e.selectDirectory == null)
-                return;
-
+            const e = (await myscript.PostMessage(port, { isSelectDirectory: true, initialDir: setMainDownloadDirectory.value })).dir;
 
             if (e.selectDirectory != null) {
                 setMainDownloadDirectory.value = e.selectDirectory;
@@ -138,15 +118,12 @@ const main = () => {
         setSubDownloadDirectory.addEventListener("change", subDownloadDirectoryUpdate);
 
         document.getElementById("selectSubDirectory").addEventListener("click", async () => {
-            const e = await myscript.PostMessage(port, { isSelectDirectory: true, initialDir: setSubDownloadDirectory.value });
+            const e = (await myscript.PostMessage(port, { isSelectDirectory: true, initialDir: setSubDownloadDirectory.value })).dir;
 
-                if (e.selectDirectory == null)
-                    return;
-
-                if (e.selectDirectory != null) {
-                    setSubDownloadDirectory.value = e.selectDirectory;
-                    subDownloadDirectoryUpdate();
-                }
+            if (e.selectDirectory != null) {
+                setSubDownloadDirectory.value = e.selectDirectory;
+                subDownloadDirectoryUpdate();
+            }
         });
     })()
 
@@ -179,15 +156,14 @@ const main = () => {
 
 
     setUrls.addEventListener("change", async () => {
-        await browser.storage.local.set({ urls: setUrls.value.split(",") });
-        port.postMessage({
+        await browser.storage.local.set({ urls: setUrls.value.replace(/\n/g, "").split(",") });
+        myscript.PostMessage(port,{
             isUpdateTabListener: true
         });
     });
 
     setOverwrite.addEventListener("change", () => {
-        const overwrite = setOverwrite.value == "Show dialog to select" ? null : setOverwrite.value;
-        browser.storage.local.set({ overwrite: overwrite });
+        browser.storage.local.set({ overwrite: setOverwrite.value });
     });
 
     setHowToCount.addEventListener("change", () => {
@@ -219,7 +195,7 @@ const main = () => {
             option.preset[selectedKey].option != setAddOption.value ||
             option.preset[selectedKey].output != setOutputOption.value ||
             option.preset[selectedKey].filename != setFilenameOption.value) {
-            port.postMessage({ changePresetValue: true, key: selectedKey, isShareJson: setIsShareJson.checked });
+            myscript.PostMessage(port,{ changePresetValue: true, key: selectedKey, isShareJson: setIsShareJson.checked });
         }
 
         option.preset[selectedKey].isShareJson = setIsShareJson.checked;
@@ -275,7 +251,8 @@ const port = browser.runtime.connect("Youtube_dlForExtension@SHi", { name: "opti
 
 window.addEventListener("DOMContentLoaded", async () => {
     const onMessage = e => {
-        if (e.message == "Init") {
+        //console.log(e);
+        if (e.body.message == "Init") {
             document.getElementById("message").textContent = "Initializing...";
             document.getElementById("main").style.display = "None";
 

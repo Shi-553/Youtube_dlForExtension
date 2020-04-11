@@ -28,11 +28,11 @@ const myscript = {};
             const callback = e => {
                 if (e.id == id) {
                     port.onMessage.removeListener(callback);
-                    r(e.message);
+                    r(e.body);
                 }
             }
             port.onMessage.addListener(callback);
-            port.postMessage({ id: id, message: message, name: port.name });
+            port.postMessage({ id: id, body: message, name: port.name });
         });
     }
 
@@ -69,10 +69,10 @@ const myscript = {};
     myscript.UpdateBadgeText = (str) => {
         if (str == null || str == "0")
             str = "";
-        browser.browserAction.setBadgeText(str);
+        browser.browserAction.setBadgeText({ text: str });
     }
 
-    myscript.GetPreset = (option, key = null) => {
+    myscript.GetPreset = (option, key) => {
         if (key == null)
             key = option.selectedPreset;
 
