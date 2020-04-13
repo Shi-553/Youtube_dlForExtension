@@ -74,7 +74,7 @@ def InstallYoutube_dl(folderPath,isFfmpeg,callback):
             callback({"message":"Download ffmpeg..."})
 
             os.chdir(folderPath + "Youtube_dlForExtension\\")
-            url = "https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20200401-afa5e38-win64-static.zip"
+            url = "https://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-20200412-f1894c2-win32-static.zip"
             
 
             req = urllib.request.Request(url)
