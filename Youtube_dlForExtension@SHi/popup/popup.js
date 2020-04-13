@@ -440,9 +440,11 @@ const main = async () => {
 };
 
 
-const port = browser.runtime.connect("Youtube_dlForExtension@SHi", { name: "popup" });
+let port;
 
 window.addEventListener("DOMContentLoaded", async () => {
+    port = browser.runtime.connect("Youtube_dlForExtension@SHi", { name: "popup" });
+
     const onMessage = e => {
         if (e.body.message == "Init") {
             document.getElementById("message").textContent = "Initializing...";

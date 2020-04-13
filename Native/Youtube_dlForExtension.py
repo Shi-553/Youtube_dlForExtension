@@ -11,8 +11,8 @@ from urllib import request
 import platform
 import traceback
 import zipfile
+import shutil
 from io import BytesIO
-#import youtube_dl
 
 pf = platform.system()
 
@@ -26,7 +26,7 @@ def getMessage():
     if len(rawLength) == 0:
         sys.exit(0)
     messageLength = struct.unpack("@I", rawLength)[0]
-    message = sys.stdin.buffer.read(messageLength).decode("utf-8")
+    message = sys.stdin.buffer.read(messageLength).decode(sys.getfilesystemencoding())
     return json.loads(message)
 
 # Encode a message for transmission,
@@ -58,7 +58,7 @@ def writeJson(p,dictionary):
 
     jsonString = json.dumps(dictionary)
 
-    with open(p,"w") as f:
+    with open(p,"w", encoding="utf-8") as f:
         f.write(jsonString)
 
 
@@ -69,21 +69,9 @@ def removeJson(receivedMessage):
     if not path.isfile(p):
         sendMessage(encodeMessage(None))
     else:
-        os.remove(p);
+        os.remove(p)
         sendMessage(encodeMessage(True))
 
-#JSONファイルから読みこむ
-#def GetJsonFromCache(receivedMessage):
-#    p = path.normpath(path.join(absDirectoryPath, "JSONCache\{}.json".format(urlToFilename(receivedMessage["url"]))))
-#    if not path.isfile(p):
-#        sendMessage(encodeMessage(None))
-#    else:
-#        try:
-#            with open(p,"r") as f:
-#                sendMessage(encodeMessage(json.load(f)))
-        
-#        except json.JSONDecodeError as e:
-#            sendMessage(encodeMessage(None))
 
 #今このファイルがあるディレクトリの絶対パス
 absDirectoryPath = path.normpath(path.abspath(path.dirname(sys.argv[0])))
@@ -109,14 +97,13 @@ def To_Youtube_dl(receivedMessage):
     #sendMessage(encodeMessage(receivedMessage))
 
     if not isFoundYoutube_dl():
-        receivedMessage["command"]=receivedMessage["command"].replace("youtube-dl","py -m youtube_dl",1)
+        receivedMessage["command"]=receivedMessage["command"].replace("youtube-dl","python -m youtube_dl",1)
 
     #JSONがあればここ
     absPath = path.normpath(path.join(absDirectoryPath, "JSONCache\{}.json".format(urlToFilename(receivedMessage["url"]+str(receivedMessage["tabId"])+receivedMessage["key"]))))
     if "json" in receivedMessage:
         receivedMessage["command"] = receivedMessage["command"].replace("<JSONPATH>",absPath,1)
         writeJson(absPath,receivedMessage["json"])
-        #print(receivedMessage["command"], file=sys.stderr)
             
    # sendMessage(encodeMessage(receivedMessage))
 
@@ -131,17 +118,17 @@ def To_Youtube_dl(receivedMessage):
 
     else:
         receivedMessage["dir"] = None
+
         
-    #上書きできなかったらここに入る
     if (("usePopen" in receivedMessage) and (receivedMessage["usePopen"])):
         receivedMessage["filePath"]=path.join(receivedMessage["dir"],receivedMessage["json"]["_filename"])
+
+        #上書きできなかったらここに入る
         if(path.isfile(receivedMessage["filePath"])):
             if receivedMessage["overwrite"] == "Show dialog to select":
                 receivedMessage["status"] = "AskOverwrite"
                 sendMessage(encodeMessage(receivedMessage))
-                #p=directoryManager({"path":receivedMessage["filePath"],"isSelect":True},True)
                 receivedMessage["overwrite"] = askOverwriteSaveAsCancel(receivedMessage["dir"],receivedMessage["json"]["_filename"])
-                #p.kill() not working
             
             if receivedMessage["overwrite"] == "Yes":
                 os.remove(receivedMessage["filePath"])
@@ -179,31 +166,33 @@ def To_Youtube_dl(receivedMessage):
             
             receivedMessage["status"] = "Progress"
             for line in iter(proc.stdout.readline,b""):
-                receivedMessage["stdout"] = line.rstrip().decode("cp932")
+                receivedMessage["stdout"] = line.rstrip().decode(sys.getfilesystemencoding())
                 sendMessage(encodeMessage(receivedMessage))
 
             proc.wait()
+
         else:
             proc = subprocess.run(receivedMessage["command"],
                                 cwd=receivedMessage["dir"],
                                 stdout = subprocess.PIPE,
                                 stderr = subprocess.STDOUT,
                                 startupinfo=startupinfo)
+
+            if proc.stdout is not None :
+                receivedMessage["stdout"] = proc.stdout.decode(sys.getfilesystemencoding())
+            else:
+                receivedMessage["stdout"] = ""
             
 
         receivedMessage["status"] = "finishedDownload"
         receivedMessage["returncode"] = proc.returncode
-        #出力をデコードして
-        if ("usePopen" not in receivedMessage) or (not receivedMessage["usePopen"]):
-            if proc.stdout is not None :
-                receivedMessage["stdout"] = proc.stdout.decode("cp932")#utf-8
-            else:
-                receivedMessage["stdout"] = ""
-        sendMessage(encodeMessage(receivedMessage))
+
+        #sendMessage(encodeMessage(receivedMessage))
 
         
         if (path.isfile(absPath)):
             os.remove(absPath)
+
         #jsonがなくてできるならJSON化
         if " -j " in receivedMessage["command"]:
             try:
@@ -239,7 +228,7 @@ def askOverwriteSaveAsCancel(directory,filename):
 
     overwriteLa = tkinter.Label(root, text="Overwrite?",font=("",20))
     overwriteLa.pack()
-    # if(showDirectoryVar is None):
+
     showDirectoryVar = tkinter.StringVar()
     showDirectoryBu = tkinter.Button(root,text="showDirectory", width=15,font=("",10), command=lambda: directoryManager({"path":showDirectoryVar.get(),"isSelect":True},True))
     showDirectoryBu.pack()
@@ -250,7 +239,7 @@ def askOverwriteSaveAsCancel(directory,filename):
     filenameLa = tkinter.Label(root, textvariable=filenameLaVar,font=("",15))
     filenameLa.pack()
         
-    #if(answer is None):
+
     answer = tkinter.StringVar()
     root.protocol("WM_DELETE_WINDOW", lambda:answer.set("No"))
     yesBu = tkinter.Button(root,text="Yes", width=25,font=("",20),  command=lambda: answer.set("Yes"))
@@ -282,7 +271,7 @@ def directoryManager(receivedMessage,isValueReturn=False):
  #   receivedMessage["status"]="started"
 #    sendMessage(encodeMessage(receivedMessage))
         
-    if not "path" in receivedMessage:
+    if "path" not in receivedMessage:
         iDir = replaceUserProfile(receivedMessage["initialDir"])
         if not path.isdir(iDir):
             iDir = None
@@ -338,16 +327,6 @@ def directoryManager(receivedMessage,isValueReturn=False):
     sendMessage(encodeMessage(receivedMessage))
 
 
-def pathManager(receivedMessage):
-    iDir = replaceUserProfile(receivedMessage["initialDir"])
-    dirname = filedialog.askopenfilename(initialdir=iDir)
-    if not dirname == "":
-        receivedMessage["status"] = "success"
-        receivedMessage["path"] = dirname
-    else:
-        receivedMessage["status"] = "fail"
-            
-    sendMessage(encodeMessage(receivedMessage))
 
 
 def replaceUserProfile(directory):
@@ -365,7 +344,7 @@ def GetUserProfile():
 
         
 #このファイルのアップデート
-def Update():
+def Update(receivedMessage):
     if not os.access(sys.argv[0], os.W_OK):
         receivedMessage["status"]="error"
         receivedMessage["message"]="no write permissions on "+absDirectoryPath
@@ -386,6 +365,10 @@ def Update():
         url = "https://drive.google.com/uc?id=1RaIaMmVeQX9ilpGJtmU0iRveBQzzYqHP"
 
         newDir=path.join(absDirectoryPath,"new")
+
+        if path.isdir(newDir):
+            shutil.rmtree(newDir)
+
         req = request.Request(url)
 
         def DownloadZip():
@@ -396,7 +379,8 @@ def Update():
         try:
             DownloadZip()
         except zipfile.BadZipfile:
-            #Google Drive, so if it's a large file, you'll see a confirmation screen.
+            #Google Drive, so if it's a large file,
+            #you'll see a confirmation screen.
             DownloadZip()
 
         bat = path.join(absDirectoryPath, 'Youtube_dlForExtensionUpdater.bat')
@@ -411,11 +395,11 @@ set NEWD={}
 set EXEPATH={}
 
 
-if exist Update.log (
-    del Update.log
+if exist UpdateExe.log (
+    del UpdateExe.log
 )
 
-call :main >> Update.log 2>&1
+call :main >> UpdateExe.log 2>&1
 exit
 
 
@@ -523,7 +507,7 @@ exit
     set BASENAME=%~n1
     exit /b
 
-'''.format(".",".\\new",sys.argv[0]));
+'''.format(".",".\\new",sys.argv[0]))
 
         subprocess.Popen([bat],
                             creationflags= subprocess.CREATE_BREAKAWAY_FROM_JOB,
@@ -541,38 +525,40 @@ exit
     sendMessage(encodeMessage(receivedMessage))
 
 
-def GetVersion():
-    receivedMessage["version"] = "1.5.1"
+def GetVersion(receivedMessage):
+    receivedMessage["version"] = "1.6"
     sendMessage(encodeMessage(receivedMessage))
 
         
 
 #youtube-dlのアップデート
-def UpdateYoutube_dl():
-    receivedMessage["filename"] = myFilename
+def UpdateYoutube_dl(receivedMessage):
+    #receivedMessage["filename"] = myFilename
 
     #youtube-dlのexeがあれば更新確認
-    if path.isfile("youtube-dl.exe"):
+    if isFoundYoutube_dl():
         proc = subprocess.run(["youtube-dl", "-U"],
                                     stdout = subprocess.PIPE,
                                     stderr = subprocess.STDOUT,
                                     startupinfo=startupinfo)
             
-        receivedMessage["stdout"] = proc.stdout.decode("cp932")#utf-8
+        receivedMessage["stdout"] = proc.stdout.decode(sys.getfilesystemencoding())
+        receivedMessage["update"] = "youtube-dl -U"
         
     #youtube-dlのexeなくてこのファイルがexeならダウンロード
     elif myFilename == "Youtube_dlForExtension.exe":
         request.urlretrieve("https://youtube-dl.org/downloads/latest/youtube-dl.exe","youtube-dl.exe")
         receivedMessage["stdout"] = "Download Youtube_dlForExtension.exe"
 
-    #このファイルがexeじゃないならpipを試す
+    #このファイルがexeじゃないなら
     else:
-        proc = subprocess.run(["py", "-m", "pip", "install","-U", "youtube-dl","--user"],
+        proc = subprocess.run(receivedMessage["youtube_dlUpdateCommand"],
                                     stdout = subprocess.PIPE,
                                     stderr = subprocess.STDOUT,
                                     startupinfo=startupinfo)
         
-        receivedMessage["stdout"] = proc.stdout.decode("cp932")#utf-8
+        receivedMessage["stdout"] = proc.stdout.decode(sys.getfilesystemencoding())
+        receivedMessage["update"] = receivedMessage["youtube_dlUpdateCommand"]
 
 
     sendMessage(encodeMessage(receivedMessage))
@@ -590,27 +576,21 @@ try:
     if receivedMessage["name"] == "DirectoryManager":
         directoryManager(receivedMessage["value"])
 
-    if receivedMessage["name"] == "PathManager":
-        pathManager(receivedMessage["value"])
-
     if receivedMessage["name"] == "RemoveJson":
         removeJson(receivedMessage["value"])
-    
-    #if receivedMessage["name"] == "GetJsonFromCache":
-    #    GetJsonFromCache(receivedMessage["value"])
-    
+
     if receivedMessage["name"] == "GetUserProfile":
         GetUserProfile()
 
     
     if receivedMessage["name"] == "UpdateYoutube_dl":
-        UpdateYoutube_dl()
+        UpdateYoutube_dl(receivedMessage["value"])
     
     if receivedMessage["name"] == "Update":
-        Update()
+        Update(receivedMessage["value"])
     
     if receivedMessage["name"] == "GetVersion":
-        GetVersion()
+        GetVersion(receivedMessage["value"])
     
 except Exception as e:
     tb=traceback.format_exc()

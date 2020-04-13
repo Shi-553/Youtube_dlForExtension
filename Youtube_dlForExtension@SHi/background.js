@@ -1,4 +1,31 @@
 (async () => {
+
+    let optionsPort, popupPort;
+
+    const ConnectPostInitializing = p => {
+        console.log(p);
+        p.onMessage.addListener(PostInitializing);
+
+        if (p.name == "options") {
+            optionsPort = p;
+            optionsPort.onDisconnect.addListener(() => optionsPort = null);
+        }
+        if (p.name == "popup") {
+            popupPort = p;
+            popupPort.onDisconnect.addListener(() => { isPopupOpen = false; popupPort = null; });
+        }
+    }
+    const PostInitializing = m => {
+        if (m.name == "options") {
+            myscript.PostMessage(optionsPort, { message: "Init" }, m.id);
+        }
+        if (m.name == "popup") {
+            myscript.PostMessage(popupPort, { message: "Init" }, m.id);
+        }
+    }
+
+    browser.runtime.onConnect.addListener(ConnectPostInitializing);
+
     //プロミス版 await で繋げられるが複数回返せない
     const SendNativePromise = async (toSendName, message, isSuppressEror = false) => {
         try {
@@ -27,104 +54,6 @@
         }
     }
 
-    let userProfile;
-    (async () => {
-        const rs = await Promise.all([browser.storage.local.get(),
-        SendNativePromise("GetUserProfile")]);
-
-        const option = rs[0];
-        userProfile = rs[1];
-
-        browser.storage.local.set({
-            switchItemProgressFlag: false
-        });
-
-        if (option.preset == null) {
-            browser.storage.local.set({
-                preset: {
-                    Default: { filename: "", output: "", option: "", isShareJson: true }
-                },
-                selectedPreset: "Default"
-            });
-        }
-
-        if (option.simultaneous == null) {
-            browser.storage.local.set({
-                simultaneous: 2
-            });
-        }
-
-        if (option.urls == null) {
-            browser.storage.local.set({
-                urls: ["<all_urls>"]
-            });
-        }
-
-        if (option.isAutoRetry == null) {
-            browser.storage.local.set({
-                isAutoRetry: true
-            });
-        }
-
-        if (option.howToCount == null) {
-            browser.storage.local.set({
-                howToCount: "Count all in bulk"
-            });
-        }
-        if (option.mainDownloadDirectory == null) {
-            browser.storage.local.set({
-                mainDownloadDirectory: userProfile + "\\Downloads"
-            });
-        }
-        if (option.subDownloadDirectory == null) {
-            browser.storage.local.set({
-                subDownloadDirectory: userProfile + "\\Videos"
-            });
-        }
-        if (option.overwrite == null) {
-            browser.storage.local.set({
-                overwrite: "Show dialog to select"
-            });
-        }
-        if (option.isDisableHealthyNotification == null) {
-            browser.storage.local.set({
-                isDisableHealthyNotification: false
-            });
-        }
-    })()
-
-
-
-    myscript.UpdateBrowserActionIcon(false, null);
-
-
-
-    let optionsPort, popupPort;
-
-    const ConnectPostInitializing = p => {
-        console.log(p);
-        p.onMessage.addListener(PostInitializing);
-
-        if (p.name == "options") {
-            optionsPort = p;
-            optionsPort.onDisconnect.addListener(() => optionsPort = null);
-        }
-        if (p.name == "popup") {
-            popupPort = p;
-            popupPort.onDisconnect.addListener(() => { isPopupOpen = false; popupPort = null; });
-        }
-    }
-    const PostInitializing = m => {
-        if (m.name == "options") {
-            myscript.PostMessage(optionsPort, { message: "Init" }, m.id);
-        }
-        if (m.name == "popup") {
-            myscript.PostMessage(popupPort, { message: "Init" }, m.id);
-        }
-    }
-
-    browser.runtime.onConnect.addListener(ConnectPostInitializing);
-
 
 
     //バージョン確認
@@ -139,7 +68,7 @@
         return;
     }
 
-    const latestVersion = "1.5.1";
+    const latestVersion = "1.6";
     //最新バージョンじゃなかったら更新
     if (getVersionBeforeRes.version != latestVersion) {
         const updateRes = await SendNativePromise("Update", {}, true);
@@ -177,17 +106,98 @@
     }
 
 
-    //youtube-dlの更新
-    const r = await SendNativePromise("UpdateYoutube_dl", {}, true);
-    console.log(r);
+    const rs = await Promise.all([browser.storage.local.get(), SendNativePromise("GetUserProfile", {}, true)]);
 
-    if (/Updated youtube-dl/.test(r.stdout)) {
-        browser.notifications.create("UpdateYoutube_dl", {
-            type: "basic",
-            iconUrl: "image/icon_enable64.png",
-            title: "Youtube-dl update.",
-            message: ""
+    const option = rs[0];
+    const userProfile = rs[1];
+
+    browser.storage.local.set({
+        switchItemProgressFlag: false
+    });
+
+    if (option.preset == null) {
+        browser.storage.local.set({
+            preset: {
+                Default: { filename: "", output: "", option: "", isShareJson: true }
+            },
+            selectedPreset: "Default"
         });
+    }
+
+    if (option.simultaneous == null) {
+        browser.storage.local.set({
+            simultaneous: 2
+        });
+    }
+
+    if (option.urls == null) {
+        browser.storage.local.set({
+            urls: ["<all_urls>"]
+        });
+    }
+
+    if (option.isAutoRetry == null) {
+        browser.storage.local.set({
+            isAutoRetry: true
+        });
+    }
+
+    if (option.howToCount == null) {
+        browser.storage.local.set({
+            howToCount: "Count all in bulk"
+        });
+    }
+    if (userProfile != null) {
+        if (option.mainDownloadDirectory == null) {
+            browser.storage.local.set({
+                mainDownloadDirectory: userProfile + "\\Downloads"
+            });
+        }
+        if (option.subDownloadDirectory == null) {
+            browser.storage.local.set({
+                subDownloadDirectory: userProfile + "\\Videos"
+            });
+        }
+    }
+    if (option.overwrite == null) {
+        browser.storage.local.set({
+            overwrite: "Show dialog to select"
+        });
+    }
+    if (option.isDisableHealthyNotification == null) {
+        browser.storage.local.set({
+            isDisableHealthyNotification: false
+        });
+    }
+    if (option.isYoutube_dlAutoUpdate == null) {
+        browser.storage.local.set({
+            isYoutube_dlAutoUpdate: false
+        });
+    }
+    if (option.isYoutube_dlAutoUpdate == null) {
+        browser.storage.local.set({
+            isYoutube_dlAutoUpdate: false
+        });
+    }
+    if (option.youtube_dlUpdateCommand == null) {
+        browser.storage.local.set({
+            youtube_dlUpdateCommand: "python -m pip install -U youtube-dl --user"
+        });
+    }
+
+    //youtube-dlの更新
+    if (option.isYoutube_dlAutoUpdate) {
+        const r = await SendNativePromise("UpdateYoutube_dl", { youtube_dlUpdateCommand:option.youtube_dlUpdateCommand}, true);
+        console.log(r);
+
+        if (/Updated youtube-dl/.test(r.stdout)) {
+            browser.notifications.create("UpdateYoutube_dl", {
+                type: "basic",
+                iconUrl: "image/icon_enable64.png",
+                title: "Youtube-dl update.",
+                message: ""
+            });
+        }
     }
 
 
@@ -507,7 +517,7 @@
 
             SendNative("To_Youtube_dl", ReceiveGetJson, {
                 isF: isF,
-                command: `youtube-dl --no-playlist -j ${outputOption} --load-info-json "<JSONPATH>"`,
+                command: `youtube-dl --no-playlist -j --load-info-json "<JSONPATH>" ${outputOption}`,
                 key: key,
                 url: url,
                 tabId: tabId,
@@ -668,7 +678,7 @@
         }
 
 
-        const code = `youtube-dl --no-playlist ${e.selectFormat != null ? "-f " + e.selectFormat : ""} ${e.filename} ${outputOption} ${selectedPreset.option} --newline --load-info-json "<JSONPATH>"`;
+        const code = `youtube-dl --no-playlist --load-info-json "<JSONPATH>" ${e.selectFormat != null ? "-f " + e.selectFormat : ""} ${e.filename} ${outputOption} ${selectedPreset.option} --newline`;
 
 
         const messageToSend = {
@@ -685,7 +695,7 @@
 
         SendNative("To_Youtube_dl", ReceiveDownloadPrepare, {
             dir: dir,//.replace(/\\+/g, "\\\\"),
-            command: `youtube-dl --no-playlist -j ${outputOption} --load-info-json "<JSONPATH>"`,
+            command: `youtube-dl --no-playlist -j --load-info-json "<JSONPATH>" ${outputOption}`,
             url: e.url,
             domain: e.url.split('/')[2],
             json: e.json,
@@ -771,7 +781,7 @@
     const downloadMatchReg = /^\[download\]\s+(.+?)%\s+of\s+(.+?)\s+at\s+(.+?)\s+ETA\s+(.+)$/;
 
     const ReceiveDownload = async (res, port) => {
-            //console.log(res);
+        //console.log(res);
         if (res.status != "Progress") {
         }
 
@@ -966,23 +976,9 @@
             // console.log(message);
             const res = await SendNativePromise("DirectoryManager", message);
             if (res.status == "success") {
-                return resolve(res.dir/*.replace(/\//g, "\\\\")*/);
+                return resolve(res.dir);
             }
             resolve("");
-
-        });
-    }
-    const SelectPathAsync = (e) => {
-        return new Promise(async resolve => {
-            const message = {
-                initialDir: e.initialDir
-            };
-            // console.log(message);
-            const res = await SendNativePromise("PathManager", message);
-            if (res.status == "success") {
-                return resolve(res.path/*.replace(/\//g, "\\\\")*/);
-            }
-            resolve(null);
 
         });
     }

@@ -2,9 +2,9 @@
 
   "manifest_version": 2,
   "name": "Youtube-dlForExtension",
-  "version": "2.0.0.4",
+  "version": "2.0.1.1",
 
-  "description": "Attention\nThis add-on alone does not work.\nLook at the description.\n\nYoutube-dl is a command-line program for downloading videos and music from YouTube and other sites.\nYoutube-dlForExtension is the one that made this easy to use from Firefox.\nYou need to communicate with Youtube-dl.\nHowever it requires a file download and (win:registry changes)(others:Python3.7.4 or higher install) to communicate.\n\nLook at ' Youtube-dlForExtension/your platform/readme.txt ' from here.\n(Windows 32-bit has been supported.)\nhttps://drive.google.com/drive/folders/1Z2t8F5grpS4x_o54yuQMIJ01YrI16YBm?usp=sharing\n\nThe installation method is written there.\n\nSetup support&Requests&Bugs, etc.\n  SHiii0410223@gmail.com\nor\n  https://github.com/Shi-553/Youtube_dlForExtension\n\n[new]\nInstaller for windows is now ready.\nIt's easier to set up.",
+  "description": "Attention\nThis add-on alone does not work.\nLook at the description.\n\nYoutube-dl is a command-line program for downloading videos and music from YouTube and other sites.\nYoutube-dlForExtension is the one that made this easy to use from Firefox.\nYou need to communicate with Youtube-dl.\nHowever it requires a file download and (win:registry changes)(others:Python3.7.4 or higher install) to communicate.\n\nLook at ' Youtube-dlForExtension/your platform/readme.txt ' from here.\nnhttps://drive.google.com/drive/folders/1Z2t8F5grpS4x_o54yuQMIJ01YrI16YBm?usp=sharing\n\nThe installation method is written there.\n\nSetup support&Requests&Bugs, etc.\n  SHiii0410223@gmail.com\nor\n  https://github.com/Shi-553/Youtube_dlForExtension\n\n[new]\nInstaller for windows is now ready.\nIt's easier to set up.",
 
   "permissions": [
     "notifications",
@@ -36,9 +36,9 @@
   "browser_action": {
     // "browser_style": true,
     "default_icon": {
-      "16": "image/icon_enable16.png",
-      "32": "image/icon_enable32.png",
-      "64": "image/icon_enable64.png"
+      "16": "image/icon_disable16.png",
+      "32": "image/icon_disable32.png",
+      "64": "image/icon_disable64.png"
     },
     "default_popup": "popup/popup.html"
   }

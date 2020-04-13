@@ -18,7 +18,9 @@ const main = () => {
         setSimultaneous = document.getElementById("setSimultaneous"),
         setHowToCount = document.getElementById("setHowToCount"),
         setIsAutoRetry = document.getElementById("setIsAutoRetry"),
-        setIsShareJson = document.getElementById("setIsShareJson");
+        setIsShareJson = document.getElementById("setIsShareJson"),
+        setIsYoutube_dlAutoUpdate = document.getElementById("setIsYoutube_dlAutoUpdate"),
+        setYoutube_dlUpdateCommand = document.getElementById("setYoutube_dlUpdateCommand");
 
 
     const changeSelectPreset = async option => {
@@ -68,7 +70,8 @@ const main = () => {
             e.selected = true;
         changeSelectPreset(option);
 
-
+        setIsYoutube_dlAutoUpdate.checked = option.isYoutube_dlAutoUpdate;
+        setYoutube_dlUpdateCommand.value = option.youtube_dlUpdateCommand;
     })();
     const AddSelectOption = (key) => {
         const o = document.createElement("option");
@@ -78,7 +81,7 @@ const main = () => {
     }
 
     (async () => {
-        const userProfile = (await myscript.PostMessage(port, { isGetUserProfile: true }));//.userProfile;
+        const userProfile = (await myscript.PostMessage(port, { isGetUserProfile: true })).userProfile;
 
         if (userProfile == null)
             return;
@@ -174,6 +177,14 @@ const main = () => {
         browser.storage.local.set({ isAutoRetry: setIsAutoRetry.checked });
     });
 
+    setIsYoutube_dlAutoUpdate.addEventListener("change", () => {
+        browser.storage.local.set({ isYoutube_dlAutoUpdate: setIsYoutube_dlAutoUpdate.checked });
+    });
+
+    setYoutube_dlUpdateCommand.addEventListener("change", () => {
+        browser.storage.local.set({ youtube_dlUpdateCommand: setYoutube_dlUpdateCommand.value });
+    });
+
     setSimultaneous.addEventListener("change", () => {
         if (setSimultaneous.value == "")
             setSimultaneous.value = 2;
@@ -247,9 +258,11 @@ const main = () => {
     });
 }
 
-const port = browser.runtime.connect("Youtube_dlForExtension@SHi", { name: "options" });
+let port;
 
 window.addEventListener("DOMContentLoaded", async () => {
+    port = browser.runtime.connect("Youtube_dlForExtension@SHi", { name: "options" });
+
     const onMessage = e => {
         //console.log(e);
         if (e.body.message == "Init") {

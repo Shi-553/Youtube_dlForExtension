@@ -17,7 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extension", "Extension", "{
 		Youtube_dlForExtension@SHi\myscript.js = Youtube_dlForExtension@SHi\myscript.js
 	EndProjectSection
 	ProjectSection(FolderGlobals) = preProject
-		C_5_4Users_4sibat_4Documents_4firefox_4Youtube_3dlForExtension_4Youtube_3dlForExtension@SHi_4manifest_1json__JsonSchema = http://json.schemastore.org/function
+		C_5_4Users_4sibat_4Documents_4firefox_4Youtube_3dlForExtension_4Youtube_3dlForExtension@SHi_4manifest_1json__JsonSchema = manifest
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Native", "Native", "{2FD7B3A3-04E3-424B-B7AF-6AEF60945B4F}"
