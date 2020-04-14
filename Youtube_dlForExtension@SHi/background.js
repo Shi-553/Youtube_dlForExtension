@@ -68,7 +68,7 @@
         return;
     }
 
-    const latestVersion = "1.6";
+    const latestVersion = "1.6.2";
     //最新バージョンじゃなかったら更新
     if (getVersionBeforeRes.version != latestVersion) {
         const updateRes = await SendNativePromise("Update", {}, true);

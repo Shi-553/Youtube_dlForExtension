@@ -26,7 +26,7 @@ def getMessage():
     if len(rawLength) == 0:
         sys.exit(0)
     messageLength = struct.unpack("@I", rawLength)[0]
-    message = sys.stdin.buffer.read(messageLength).decode(sys.getfilesystemencoding())
+    message = sys.stdin.buffer.read(messageLength).decode("utf-8")
     return json.loads(message)
 
 # Encode a message for transmission,
@@ -166,7 +166,7 @@ def To_Youtube_dl(receivedMessage):
             
             receivedMessage["status"] = "Progress"
             for line in iter(proc.stdout.readline,b""):
-                receivedMessage["stdout"] = line.rstrip().decode(sys.getfilesystemencoding())
+                receivedMessage["stdout"] = line.rstrip().decode(sys.stdout.encoding,error="ignore")
                 sendMessage(encodeMessage(receivedMessage))
 
             proc.wait()
@@ -179,7 +179,7 @@ def To_Youtube_dl(receivedMessage):
                                 startupinfo=startupinfo)
 
             if proc.stdout is not None :
-                receivedMessage["stdout"] = proc.stdout.decode(sys.getfilesystemencoding())
+                receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,error="ignore")
             else:
                 receivedMessage["stdout"] = ""
             
@@ -363,11 +363,12 @@ def Update(receivedMessage):
 
     elif myFilename == "Youtube_dlForExtension.exe":
         url = "https://drive.google.com/uc?id=1RaIaMmVeQX9ilpGJtmU0iRveBQzzYqHP"
-
+        
         newDir=path.join(absDirectoryPath,"new")
 
         if path.isdir(newDir):
             shutil.rmtree(newDir)
+
 
         req = request.Request(url)
 
@@ -383,12 +384,17 @@ def Update(receivedMessage):
             #you'll see a confirmation screen.
             DownloadZip()
 
+        desktopPath=path.join(newDir,"desktop.ini")
+
+        if path.isfile(desktopPath):
+            os.remove(desktopPath)
+
         bat = path.join(absDirectoryPath, 'Youtube_dlForExtensionUpdater.bat')
 
         with open(bat, 'w') as f:
             f.write('''
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 set CD={}
 set NEWD={}
@@ -446,7 +452,6 @@ exit
     )
     for /l %%i in (1,1,10) do (
     
-        setlocal enabledelayedexpansion
         if "%3"=="" (
             if "%2"=="" (
                 call :%1
@@ -458,13 +463,11 @@ exit
         )
         
         if !errorlevel! equ 0 (
-            endlocal
             echo Successful %1
             echo Number of attempts %%i
 
             exit /b
         )
-        endlocal
 
         timeout /t 1
     )
@@ -526,7 +529,7 @@ exit
 
 
 def GetVersion(receivedMessage):
-    receivedMessage["version"] = "1.6"
+    receivedMessage["version"] = "1.6.2"
     sendMessage(encodeMessage(receivedMessage))
 
         
@@ -542,7 +545,7 @@ def UpdateYoutube_dl(receivedMessage):
                                     stderr = subprocess.STDOUT,
                                     startupinfo=startupinfo)
             
-        receivedMessage["stdout"] = proc.stdout.decode(sys.getfilesystemencoding())
+        receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,error="ignore")
         receivedMessage["update"] = "youtube-dl -U"
         
     #youtube-dlのexeなくてこのファイルがexeならダウンロード
@@ -557,7 +560,7 @@ def UpdateYoutube_dl(receivedMessage):
                                     stderr = subprocess.STDOUT,
                                     startupinfo=startupinfo)
         
-        receivedMessage["stdout"] = proc.stdout.decode(sys.getfilesystemencoding())
+        receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,error="ignore")
         receivedMessage["update"] = receivedMessage["youtube_dlUpdateCommand"]
 
 
