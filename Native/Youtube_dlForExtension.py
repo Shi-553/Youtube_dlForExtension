@@ -166,7 +166,7 @@ def To_Youtube_dl(receivedMessage):
             
             receivedMessage["status"] = "Progress"
             for line in iter(proc.stdout.readline,b""):
-                receivedMessage["stdout"] = line.rstrip().decode(sys.stdout.encoding,error="ignore")
+                receivedMessage["stdout"] = line.rstrip().decode(sys.stdout.encoding,errors="ignore")
                 sendMessage(encodeMessage(receivedMessage))
 
             proc.wait()
@@ -179,7 +179,7 @@ def To_Youtube_dl(receivedMessage):
                                 startupinfo=startupinfo)
 
             if proc.stdout is not None :
-                receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,error="ignore")
+                receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,errors="ignore")
             else:
                 receivedMessage["stdout"] = ""
             
@@ -529,7 +529,7 @@ exit
 
 
 def GetVersion(receivedMessage):
-    receivedMessage["version"] = "1.6.2"
+    receivedMessage["version"] = "1.6.3"
     sendMessage(encodeMessage(receivedMessage))
 
         
@@ -545,7 +545,7 @@ def UpdateYoutube_dl(receivedMessage):
                                     stderr = subprocess.STDOUT,
                                     startupinfo=startupinfo)
             
-        receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,error="ignore")
+        receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,errors="ignore")
         receivedMessage["update"] = "youtube-dl -U"
         
     #youtube-dlのexeなくてこのファイルがexeならダウンロード
@@ -560,7 +560,7 @@ def UpdateYoutube_dl(receivedMessage):
                                     stderr = subprocess.STDOUT,
                                     startupinfo=startupinfo)
         
-        receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,error="ignore")
+        receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,errors="ignore")
         receivedMessage["update"] = receivedMessage["youtube_dlUpdateCommand"]
 
 
