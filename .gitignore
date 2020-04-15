@@ -282,3 +282,6 @@ __pycache__/
 *.spec
 /Youtube_dlForExtension@SHi/Youtube_dlForExtension@SHi.zip
 /Native/src/core/Youtube_dlForExtensionUpdater.py
+/native/dist
+/native/src/core/dist
+/native/src/windowsInstaller/dist
