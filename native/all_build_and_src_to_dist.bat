@@ -10,7 +10,7 @@ echo;
 echo -------------------------------------------------------------------------------------
 echo;
 cd /d %~dp0
-call ".\src\windowsInstaller\Youtube_dlForExtensionInstallerBuild.bat"
+call ".\src\windows_installer\Youtube_dlForExtensionInstallerBuild.bat"
 echo;
 echo -------------------------------------------------------------------------------------
 echo;

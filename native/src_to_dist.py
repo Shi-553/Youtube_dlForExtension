@@ -22,12 +22,14 @@ def SetWindows():
     s_windows = src / "windows"
     s_windowsInstaller = src / "windows_installer"
 
-    with zipfile.ZipFile(d_windows / f"{YFE}.zip",'w', compression=zipfile.ZIP_DEFLATED) as zip:
-        for f in s_windows.iterdir():
-            zip.write(f,path.join(YFE,f.name))
+    s_core_dist = s_core / "dist"
 
-        for f in (s_core / "dist").iterdir():
-            zip.write(f,path.join(YFE,f.name))
+    with zipfile.ZipFile(d_windows / f"{YFE}.zip",'w', compression=zipfile.ZIP_DEFLATED) as zip:
+        for f in s_windows.glob('**/*'):
+            zip.write(f,path.join(YFE,f.relative_to(s_windows)))
+
+        for f in s_core_dist.glob('**/*'):
+            zip.write(f,path.join(YFE,f.relative_to(s_core_dist)))
 
     shutil.copy(s_windows / "readme.txt",d_windows)
     shutil.copy(s_windowsInstaller / "dist" / f"{YFE}Installer.exe",d_windows)
@@ -40,11 +42,11 @@ def SetOthers():
     s_others = src / "others"
 
     with zipfile.ZipFile(d_others / f"{YFE}.zip",'w', compression=zipfile.ZIP_DEFLATED) as zip:
-        for f in s_others.iterdir():
+        for f in s_others.glob('**/*'):
             if f.name == f"{YFE}.json":
-                zip.write(f,path.join(YFE,f.name))
+                zip.write(f,path.join(YFE,f.relative_to(s_others)))
             else:
-                zip.write(f,path.join(YFE,YFE,f.name))
+                zip.write(f,path.join(YFE,YFE,f.relative_to(s_others)))
 
         zip.write(s_core / f"{YFE}.py",path.join(YFE,YFE,f"{YFE}.py"))
 
