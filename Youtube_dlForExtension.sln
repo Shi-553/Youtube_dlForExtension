@@ -29,7 +29,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Native", "Native", "{2FD7B3
 		Native\Youtube_dlForExtension.json = Native\Youtube_dlForExtension.json
 		Native\Youtube_dlForExtension.py = Native\Youtube_dlForExtension.py
 		native\src\core\Youtube_dlForExtension.py = native\src\core\Youtube_dlForExtension.py
-		Native\Youtube_dlForExtensionUpdater.py = Native\Youtube_dlForExtensionUpdater.py
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Popup", "Popup", "{EDBDFB9F-30CF-4E03-BDEF-20F17D60D593}"

@@ -261,29 +261,24 @@ __pycache__/
 *.pyc
 /Native/JSONCache
 /Extension/jsconfig.json
-*.zip
 *.xpi
-/日本語.txt
 /others
 /windows
 /Native/ffprobe.exe
 /Native/ffmpeg.exe
-/Native/dist
 /Native/build
 /Native/Youtube_dlForExtensionUpdater.spec
 /Native/Youtube_dlForExtension.spec
 /Youtube_dlForExtension@SHi/jsconfig.json
 /Youtube_dlForExtension@SHi - コピー
 /WindowsInstaller/build/Youtube_dlForExtensionInstaller
-/WindowsInstaller/dist
 /WindowsInstaller/Youtube_dlForExtensionInstaller.spec
 /Youtube_dlForExtension@SHi chrome
 /Native/dist_pyinstaller
 /Native/src/core/build
 /native/src/core/Youtube_dlForExtension.spec
 /Native/src/core/dist_pyinstaller
-/Native/src/core/dist
-/native/src/windows/youtube-dl.exe
-/Native/src/windowsInstaller/dist
 /Native/src/windowsInstaller/build/Youtube_dlForExtensionInstaller
 *.spec
+/Youtube_dlForExtension@SHi/Youtube_dlForExtension@SHi.zip
+/Native/src/core/Youtube_dlForExtensionUpdater.py
