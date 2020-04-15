@@ -20,7 +20,7 @@ def SetWindows():
     d_windows.mkdir(exist_ok=True)
 
     s_windows = src / "windows"
-    s_windowsInstaller = src / "windowsInstaller"
+    s_windowsInstaller = src / "windows_installer"
 
     with zipfile.ZipFile(d_windows / f"{YFE}.zip",'w', compression=zipfile.ZIP_DEFLATED) as zip:
         for f in s_windows.iterdir():

@@ -285,3 +285,5 @@ __pycache__/
 /native/dist
 /native/src/core/dist
 /native/src/windowsInstaller/dist
+/native/src/windows_installer/build/Youtube_dlForExtensionInstaller
+/native/src/windows_installer/dist

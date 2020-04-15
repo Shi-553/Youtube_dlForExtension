@@ -20,15 +20,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extension", "Extension", "{
 		C_5_4Users_4sibat_4Documents_4firefox_4Youtube_3dlForExtension_4Youtube_3dlForExtension@SHi_4manifest_1json__JsonSchema = manifest
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Native", "Native", "{2FD7B3A3-04E3-424B-B7AF-6AEF60945B4F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "native", "native", "{2FD7B3A3-04E3-424B-B7AF-6AEF60945B4F}"
 	ProjectSection(SolutionItems) = preProject
-		Native\RegistryDelete.bat = Native\RegistryDelete.bat
-		Native\RegistrySet.bat = Native\RegistrySet.bat
-		Native\setup.py = Native\setup.py
-		Native\Youtube_dlForExtension.bat = Native\Youtube_dlForExtension.bat
-		Native\Youtube_dlForExtension.json = Native\Youtube_dlForExtension.json
-		Native\Youtube_dlForExtension.py = Native\Youtube_dlForExtension.py
-		native\src\core\Youtube_dlForExtension.py = native\src\core\Youtube_dlForExtension.py
+		native\all_build_and_src_to_dist.bat = native\all_build_and_src_to_dist.bat
+		native\src_to_dist.bat = native\src_to_dist.bat
+		native\src_to_dist.py = native\src_to_dist.py
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Popup", "Popup", "{EDBDFB9F-30CF-4E03-BDEF-20F17D60D593}"
@@ -46,10 +42,38 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Options", "Options", "{FD01
 		Youtube_dlForExtension@SHi\options\options.js = Youtube_dlForExtension@SHi\options\options.js
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WindowsInstaller", "WindowsInstaller", "{BED17837-17EE-492A-9B4D-CFC4A48B00CA}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8628FFDB-49C9-408C-A0B6-E8150013602F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "core", "core", "{F24D0534-344A-4989-A0CD-D2CA6CF6F4BB}"
 	ProjectSection(SolutionItems) = preProject
-		WindowsInstaller\admin.py = WindowsInstaller\admin.py
-		WindowsInstaller\Youtube_dlForExtensionInstaller.py = WindowsInstaller\Youtube_dlForExtensionInstaller.py
+		native\src\core\Build_at_py2exe.bat = native\src\core\Build_at_py2exe.bat
+		native\src\core\Build_at_PyInstaller.bat = native\src\core\Build_at_PyInstaller.bat
+		native\src\core\setup_py2exe.py = native\src\core\setup_py2exe.py
+		native\src\core\Youtube_dlForExtension.py = native\src\core\Youtube_dlForExtension.py
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "windows", "windows", "{1A4FDCA5-7119-4F23-A4DC-140AADDB2687}"
+	ProjectSection(SolutionItems) = preProject
+		native\src\windows\readme.txt = native\src\windows\readme.txt
+		native\src\windows\RegistryDelete.bat = native\src\windows\RegistryDelete.bat
+		native\src\windows\RegistrySet.bat = native\src\windows\RegistrySet.bat
+		native\src\windows\update.txt = native\src\windows\update.txt
+		native\src\windows\Youtube_dlForExtension.bat = native\src\windows\Youtube_dlForExtension.bat
+		native\src\windows\Youtube_dlForExtension.json = native\src\windows\Youtube_dlForExtension.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "others", "others", "{62D9700F-6A70-43B4-89E5-D256DEBAABE4}"
+	ProjectSection(SolutionItems) = preProject
+		native\src\others\readme.txt = native\src\others\readme.txt
+		native\src\others\update.txt = native\src\others\update.txt
+		native\src\others\Youtube_dlForExtension.json = native\src\others\Youtube_dlForExtension.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "windows_installer", "windows_installer", "{ABC48DE8-0274-4610-9131-DDC02158CFAA}"
+	ProjectSection(SolutionItems) = preProject
+		native\src\windows_installer\admin.py = native\src\windows_installer\admin.py
+		native\src\windows_installer\Youtube_dlForExtensionInstaller.py = native\src\windows_installer\Youtube_dlForExtensionInstaller.py
+		native\src\windows_installer\Youtube_dlForExtensionInstallerBuild.bat = native\src\windows_installer\Youtube_dlForExtensionInstallerBuild.bat
 	EndProjectSection
 EndProject
 Global
@@ -61,7 +85,11 @@ Global
 		{2FD7B3A3-04E3-424B-B7AF-6AEF60945B4F} = {77CEF2AD-C021-4772-B471-19F25504E0C3}
 		{EDBDFB9F-30CF-4E03-BDEF-20F17D60D593} = {34B10C92-7A62-46EC-9F1D-E05304E95BC0}
 		{FD01B231-1657-4255-A3BA-8A71913B6718} = {34B10C92-7A62-46EC-9F1D-E05304E95BC0}
-		{BED17837-17EE-492A-9B4D-CFC4A48B00CA} = {77CEF2AD-C021-4772-B471-19F25504E0C3}
+		{8628FFDB-49C9-408C-A0B6-E8150013602F} = {2FD7B3A3-04E3-424B-B7AF-6AEF60945B4F}
+		{F24D0534-344A-4989-A0CD-D2CA6CF6F4BB} = {8628FFDB-49C9-408C-A0B6-E8150013602F}
+		{1A4FDCA5-7119-4F23-A4DC-140AADDB2687} = {8628FFDB-49C9-408C-A0B6-E8150013602F}
+		{62D9700F-6A70-43B4-89E5-D256DEBAABE4} = {8628FFDB-49C9-408C-A0B6-E8150013602F}
+		{ABC48DE8-0274-4610-9131-DDC02158CFAA} = {8628FFDB-49C9-408C-A0B6-E8150013602F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9D1FD0E-EE60-4895-B1A6-35F9BB9604A4}
