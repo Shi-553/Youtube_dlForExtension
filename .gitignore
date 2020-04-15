@@ -279,3 +279,11 @@ __pycache__/
 /WindowsInstaller/Youtube_dlForExtensionInstaller.spec
 /Youtube_dlForExtension@SHi chrome
 /Native/dist_pyinstaller
+/Native/src/core/build
+/native/src/core/Youtube_dlForExtension.spec
+/Native/src/core/dist_pyinstaller
+/Native/src/core/dist
+/native/src/windows/youtube-dl.exe
+/Native/src/windowsInstaller/dist
+/Native/src/windowsInstaller/build/Youtube_dlForExtensionInstaller
+*.spec
