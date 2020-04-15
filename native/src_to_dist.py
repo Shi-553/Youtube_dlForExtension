@@ -1,4 +1,4 @@
-﻿from os import path
+from os import path
 import zipfile
 import shutil
 import pathlib
@@ -51,6 +51,7 @@ def SetOthers():
     shutil.copy(s_others / "readme.txt",d_others)
 
 
+print("start src_to_dist")
 cwd = pathlib.Path()
 
 dist = cwd / "dist"
@@ -64,3 +65,5 @@ YFE = "Youtube_dlForExtension"
 SetCode()
 SetWindows()
 SetOthers()
+
+print("end src_to_dist")
