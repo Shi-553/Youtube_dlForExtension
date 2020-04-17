@@ -33,14 +33,21 @@ def install():
 
         resultLa["text"]+=log["message"] + "\n"
 
-    th = threading.Thread(target=InstallYoutube_dl, args=(os.path.normpath(installDirectoryEn.get()),ffmpegOpeionVal.get(),callback))
+    th = threading.Thread(target=InstallYoutube_dl, args=(os.path.normpath(installDirectoryEn.get()),ffmpegOptionVal.get(),callback))
     th.start()
 
 
 def InstallYoutube_dl(folderPath,isFfmpeg,callback):
 
     os.chdir(folderPath)
-    url = "https://drive.google.com/uc?export=download&id=1yhHlH-xtX2XjIa7DzEq5SOOxJT14I4A4"
+
+    pathSplits = path.normcase(sys.argv[0]).split("\\")
+    isDebug = "debug" in pathSplits
+
+    if isDebug:
+        url = "https://drive.google.com/uc?id=12a9Wt9ypabZYwJqEK-MTzZNNuve4CCde"
+    else:
+        url = "https://drive.google.com/uc?&id=1yhHlH-xtX2XjIa7DzEq5SOOxJT14I4A4"
 
     try:
         callback({"message":"Download..."})
@@ -172,9 +179,9 @@ if __name__ == "__main__":
     mainTitleLa = tk.Label(optionPage, text="Youtube-dl For Extension Installer",font=("",16))
     mainTitleLa.place(x=38,y=50)
 
-    ffmpegOpeionVal = tk.BooleanVar()
-    ffmpegOpeionVal.set(True)
-    ffmpegOptionCb = tk.Checkbutton(optionPage, text="Download ffmpeg.exe.",font=("",13),variable=ffmpegOpeionVal)
+    ffmpegOptionVal = tk.BooleanVar()
+    ffmpegOptionVal.set(True)
+    ffmpegOptionCb = tk.Checkbutton(optionPage, text="Download ffmpeg.exe.",font=("",13),variable=ffmpegOptionVal)
     ffmpegOptionCb.place(x=38,y=100)
     
     nextBu = tk.Button(optionPage,text="Install", width=10,font=("",10),command=lambda:install())

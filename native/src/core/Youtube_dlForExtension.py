@@ -14,7 +14,21 @@ import zipfile
 import shutil
 from io import BytesIO
 
+
+#今このファイルがあるディレクトリの絶対パス
+absDirectoryPath = path.normpath(path.abspath(path.dirname(sys.argv[0])))
+
+#ファイル名
+myFilename = path.basename(sys.argv[0])
+
 pf = platform.system()
+
+if pf == "Windows":
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+else:
+    startupinfo = None
+
 
 def printErr(str):
     print(str,file=sys.stderr)
@@ -64,30 +78,19 @@ def writeJson(p,dictionary):
 
 #JSONファイルを消す
 def removeJson(receivedMessage):
-    p = path.normpath(path.join(absDirectoryPath, "JSONCache\{}.json".format(urlToFilename(receivedMessage["url"]+str(receivedMessage["tabId"])+receivedMessage["key"]))))
+    p = path.normpath(path.join(absDirectoryPath, "JSONCache\{}.json".format(urlToFilename(receivedMessage["url"] + str(receivedMessage["tabId"]) + receivedMessage["key"]))))
 
     if not path.isfile(p):
         sendMessage(encodeMessage(None))
     else:
         os.remove(p)
         sendMessage(encodeMessage(True))
+        
 
-
-#今このファイルがあるディレクトリの絶対パス
-absDirectoryPath = path.normpath(path.abspath(path.dirname(sys.argv[0])))
-
-#ファイル名
-myFilename = path.basename(sys.argv[0])
-
-if pf == "Windows":
-    startupinfo = subprocess.STARTUPINFO()
-    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-else:
-    startupinfo=None
 
 def isFoundYoutube_dl():
     for p in os.listdir(absDirectoryPath):
-        if path.isfile(p) and path.splitext(path.basename(p))[0]=="youtube-dl":
+        if path.isfile(p) and path.splitext(path.basename(p))[0] == "youtube-dl":
             return True
 
     return False
@@ -97,10 +100,10 @@ def To_Youtube_dl(receivedMessage):
     #sendMessage(encodeMessage(receivedMessage))
 
     if not isFoundYoutube_dl():
-        receivedMessage["command"]=receivedMessage["command"].replace("youtube-dl","python -m youtube_dl",1)
+        receivedMessage["command"] = receivedMessage["command"].replace("youtube-dl","python -m youtube_dl",1)
 
     #JSONがあればここ
-    absPath = path.normpath(path.join(absDirectoryPath, "JSONCache\{}.json".format(urlToFilename(receivedMessage["url"]+str(receivedMessage["tabId"])+receivedMessage["key"]))))
+    absPath = path.normpath(path.join(absDirectoryPath, "JSONCache\{}.json".format(urlToFilename(receivedMessage["url"] + str(receivedMessage["tabId"]) + receivedMessage["key"]))))
     if "json" in receivedMessage:
         receivedMessage["command"] = receivedMessage["command"].replace("<JSONPATH>",absPath,1)
         writeJson(absPath,receivedMessage["json"])
@@ -121,7 +124,7 @@ def To_Youtube_dl(receivedMessage):
 
         
     if (("usePopen" in receivedMessage) and (receivedMessage["usePopen"])):
-        receivedMessage["filePath"]=path.join(receivedMessage["dir"],receivedMessage["json"]["_filename"])
+        receivedMessage["filePath"] = path.join(receivedMessage["dir"],receivedMessage["json"]["_filename"])
 
         #上書きできなかったらここに入る
         if(path.isfile(receivedMessage["filePath"])):
@@ -276,6 +279,7 @@ def directoryManager(receivedMessage,isValueReturn=False):
         if not path.isdir(iDir):
             iDir = None
         root = tkinter.Tk()
+        root.attributes("-topmost", True)
         root.withdraw() 
         dirname = filedialog.askdirectory(initialdir=iDir)
         root.destroy()
@@ -291,29 +295,29 @@ def directoryManager(receivedMessage,isValueReturn=False):
             receivedMessage["status"] = "fail"
             
     else:
-        p=receivedMessage["path"]
+        p = receivedMessage["path"]
 
         if not path.exists(p):
             if path.exists(path.dirname(p)):
-                p=path.dirname(p)
-                receivedMessage["isSelect"]=False
+                p = path.dirname(p)
+                receivedMessage["isSelect"] = False
             else:
                 receivedMessage["status"] = "fail"
                 sendMessage(encodeMessage(receivedMessage))
 
-        fileManagerName=""
+        fileManagerName = ""
 
         if pf == 'Windows':
-            fileManagerName="explorer"
+            fileManagerName = "explorer"
             select = "/select,"if receivedMessage["isSelect"] else ""
 
         elif pf == 'Darwin':
-            fileManagerName="open"
+            fileManagerName = "open"
             select = "-R "if receivedMessage["isSelect"] else ""
 
         elif pt == 'Linux':
-            p=path.dirname(p)
-            fileManagerName="xdg-open"
+            p = path.dirname(p)
+            fileManagerName = "xdg-open"
             select = ""
 
         command = '{} {}"{}"'.format(fileManagerName,select,path.normpath(p))
@@ -346,14 +350,19 @@ def GetUserProfile():
 #このファイルのアップデート
 def Update(receivedMessage):
     if not os.access(sys.argv[0], os.W_OK):
-        receivedMessage["status"]="error"
-        receivedMessage["message"]="no write permissions on "+absDirectoryPath
+        receivedMessage["status"] = "error"
+        receivedMessage["message"] = "no write permissions on " + absDirectoryPath
         sendMessage(encodeMessage(receivedMessage))
         sys.exit()
         
+    pathSplits = path.normcase(absDirectoryPath).split("\\")
+    isDebug = "debug" in pathSplits
 
     if myFilename == "Youtube_dlForExtension.py":
-        url = "https://drive.google.com/uc?id=1DNA02s4mn9bvQBSfZqXP6ThpUUB1RIO9"
+        if isDebug:
+            url = "https://drive.google.com/uc?id=1DvriaW84QMn2BM-AaD0cc6wsmCMQ_YIf"
+        else:
+            url = "https://drive.google.com/uc?id=1DNA02s4mn9bvQBSfZqXP6ThpUUB1RIO9"
 
         req = request.Request(url)
         with request.urlopen(req) as res:
@@ -362,9 +371,12 @@ def Update(receivedMessage):
 
 
     elif myFilename == "Youtube_dlForExtension.exe":
-        url = "https://drive.google.com/uc?id=1RaIaMmVeQX9ilpGJtmU0iRveBQzzYqHP"
+        if isDebug:
+            url = "https://drive.google.com/uc?id=14k1nn2b4xiI5moDC7yKeT9T85p9LYfgy"
+        else:
+            url = "https://drive.google.com/uc?id=1RaIaMmVeQX9ilpGJtmU0iRveBQzzYqHP"
         
-        newDir=path.join(absDirectoryPath,"new")
+        newDir = path.join(absDirectoryPath,"new")
 
         if path.isdir(newDir):
             shutil.rmtree(newDir)
@@ -384,7 +396,7 @@ def Update(receivedMessage):
             #you'll see a confirmation screen.
             DownloadZip()
 
-        desktopPath=path.join(newDir,"desktop.ini")
+        desktopPath = path.join(newDir,"desktop.ini")
 
         if path.isfile(desktopPath):
             os.remove(desktopPath)
@@ -517,19 +529,19 @@ exit
                             start_new_session=True,
                             startupinfo=startupinfo)
     else:
-        receivedMessage["status"]="error"
-        receivedMessage["message"]="Is not .py or .exe."
+        receivedMessage["status"] = "error"
+        receivedMessage["message"] = "Is not .py or .exe."
         sendMessage(encodeMessage(receivedMessage))
         sys.exit()
 
 
    
-    receivedMessage["status"]="success"
+    receivedMessage["status"] = "success"
     sendMessage(encodeMessage(receivedMessage))
 
 
 def GetVersion(receivedMessage):
-    receivedMessage["version"] = "1.6.3"
+    receivedMessage["version"] = "1.7"
     sendMessage(encodeMessage(receivedMessage))
 
         
@@ -596,9 +608,9 @@ try:
         GetVersion(receivedMessage["value"])
     
 except Exception as e:
-    tb=traceback.format_exc()
+    tb = traceback.format_exc()
     printErr(tb)
 
-    receivedMessage["status"]="error"
-    receivedMessage["trakback"]=tb
+    receivedMessage["status"] = "error"
+    receivedMessage["trakback"] = tb
     sendMessage(encodeMessage(receivedMessage))
