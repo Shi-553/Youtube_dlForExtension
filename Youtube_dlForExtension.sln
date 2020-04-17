@@ -11,10 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extension", "Extension", "{34B10C92-7A62-46EC-9F1D-E05304E95BC0}"
 	ProjectSection(SolutionItems) = preProject
-		Youtube_dlForExtension@SHi\background.js = Youtube_dlForExtension@SHi\background.js
-		Youtube_dlForExtension@SHi\jsconfig.json = Youtube_dlForExtension@SHi\jsconfig.json
-		Youtube_dlForExtension@SHi\manifest.json = Youtube_dlForExtension@SHi\manifest.json
-		Youtube_dlForExtension@SHi\myscript.js = Youtube_dlForExtension@SHi\myscript.js
+		extension\to_zip.bat = extension\to_zip.bat
+		extension\to_zip.py = extension\to_zip.py
 	EndProjectSection
 	ProjectSection(FolderGlobals) = preProject
 		C_5_4Users_4sibat_4Documents_4firefox_4Youtube_3dlForExtension_4Youtube_3dlForExtension@SHi_4manifest_1json__JsonSchema = manifest
@@ -27,19 +25,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "native", "native", "{2FD7B3
 		native\src_to_dist.py = native\src_to_dist.py
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Popup", "Popup", "{EDBDFB9F-30CF-4E03-BDEF-20F17D60D593}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "popup", "popup", "{EDBDFB9F-30CF-4E03-BDEF-20F17D60D593}"
 	ProjectSection(SolutionItems) = preProject
-		Youtube_dlForExtension@SHi\popup\backgroundImage.js = Youtube_dlForExtension@SHi\popup\backgroundImage.js
-		Youtube_dlForExtension@SHi\popup\popup.css = Youtube_dlForExtension@SHi\popup\popup.css
-		Youtube_dlForExtension@SHi\popup\popup.html = Youtube_dlForExtension@SHi\popup\popup.html
-		Youtube_dlForExtension@SHi\popup\popup.js = Youtube_dlForExtension@SHi\popup\popup.js
+		extension\src\popup\backgroundImage.js = extension\src\popup\backgroundImage.js
+		extension\src\popup\popup.css = extension\src\popup\popup.css
+		extension\src\popup\popup.html = extension\src\popup\popup.html
+		extension\src\popup\popup.js = extension\src\popup\popup.js
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Options", "Options", "{FD01B231-1657-4255-A3BA-8A71913B6718}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "options", "options", "{FD01B231-1657-4255-A3BA-8A71913B6718}"
 	ProjectSection(SolutionItems) = preProject
-		Youtube_dlForExtension@SHi\options\options.css = Youtube_dlForExtension@SHi\options\options.css
-		Youtube_dlForExtension@SHi\options\options.html = Youtube_dlForExtension@SHi\options\options.html
-		Youtube_dlForExtension@SHi\options\options.js = Youtube_dlForExtension@SHi\options\options.js
+		extension\src\options\options.css = extension\src\options\options.css
+		extension\src\options\options.html = extension\src\options\options.html
+		extension\src\options\options.js = extension\src\options\options.js
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8628FFDB-49C9-408C-A0B6-E8150013602F}"
@@ -76,6 +74,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "windows_installer", "window
 		native\src\windows_installer\Youtube_dlForExtensionInstallerBuild.bat = native\src\windows_installer\Youtube_dlForExtensionInstallerBuild.bat
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{64090A60-9915-4909-8ACD-F29C0188FCCF}"
+	ProjectSection(SolutionItems) = preProject
+		extension\src\background.js = extension\src\background.js
+		extension\src\jsconfig.json = extension\src\jsconfig.json
+		extension\src\manifest.json = extension\src\manifest.json
+		extension\src\myscript.js = extension\src\myscript.js
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,13 +89,14 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{34B10C92-7A62-46EC-9F1D-E05304E95BC0} = {77CEF2AD-C021-4772-B471-19F25504E0C3}
 		{2FD7B3A3-04E3-424B-B7AF-6AEF60945B4F} = {77CEF2AD-C021-4772-B471-19F25504E0C3}
-		{EDBDFB9F-30CF-4E03-BDEF-20F17D60D593} = {34B10C92-7A62-46EC-9F1D-E05304E95BC0}
-		{FD01B231-1657-4255-A3BA-8A71913B6718} = {34B10C92-7A62-46EC-9F1D-E05304E95BC0}
+		{EDBDFB9F-30CF-4E03-BDEF-20F17D60D593} = {64090A60-9915-4909-8ACD-F29C0188FCCF}
+		{FD01B231-1657-4255-A3BA-8A71913B6718} = {64090A60-9915-4909-8ACD-F29C0188FCCF}
 		{8628FFDB-49C9-408C-A0B6-E8150013602F} = {2FD7B3A3-04E3-424B-B7AF-6AEF60945B4F}
 		{F24D0534-344A-4989-A0CD-D2CA6CF6F4BB} = {8628FFDB-49C9-408C-A0B6-E8150013602F}
 		{1A4FDCA5-7119-4F23-A4DC-140AADDB2687} = {8628FFDB-49C9-408C-A0B6-E8150013602F}
 		{62D9700F-6A70-43B4-89E5-D256DEBAABE4} = {8628FFDB-49C9-408C-A0B6-E8150013602F}
 		{ABC48DE8-0274-4610-9131-DDC02158CFAA} = {8628FFDB-49C9-408C-A0B6-E8150013602F}
+		{64090A60-9915-4909-8ACD-F29C0188FCCF} = {34B10C92-7A62-46EC-9F1D-E05304E95BC0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9D1FD0E-EE60-4895-B1A6-35F9BB9604A4}

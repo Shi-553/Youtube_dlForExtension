@@ -1,39 +1,31 @@
 
 const myscript = {};
 (() => {
-    myscript.PostMessage = async (port, message = null, id = null) => {
-        const isNewId = id == null;
-
+    myscript.PostMessage = async (port, message = {}, option = {}) => {
         if (port == null) {
             console.error("port null");
             return;
         }
-        if (id == null) {
-            const idStr = (await browser.storage.local.get("messageId")).messageId;
 
-            if (idStr != null) {
-                id = parseInt(idStr);
-                id++;
-            }
-            if (idStr == null || 100 < id) {
-                id = 0;
-            }
-            await browser.storage.local.set({ messageId: id });
-        }
-        if (message == null) {
-            message = {};
-        }
-        console.log(message, id, isNewId);
-        return new Promise(r => {
-            const callback = e => {
-                if (e.id == id) {
-                    port.onMessage.removeListener(callback);
-                    r(e.body);
+        console.log(message, option);
+
+        if (option.usePromise) {
+            option.id = JSON.stringify(message);
+
+            return new Promise(r => {
+                const callback = e => {
+                    if (e.id == option.id) {
+                        port.onMessage.removeListener(callback);
+                        r(e.body);
+                    }
                 }
-            }
-            port.onMessage.addListener(callback);
-            port.postMessage({ id: id, body: message, name: port.name });
-        });
+                port.onMessage.addListener(callback);
+                port.postMessage({ id: option.id, body: message, name: port.name });
+            });
+
+        } else {
+            port.postMessage({ id: option.id, body: message, name: port.name });
+        }
     }
 
 

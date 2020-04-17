@@ -3,7 +3,7 @@
     let optionsPort, popupPort;
 
     const ConnectPostInitializing = p => {
-        console.log(p);
+        //console.log(p);
         p.onMessage.addListener(PostInitializing);
 
         if (p.name == "options") {
@@ -17,10 +17,10 @@
     }
     const PostInitializing = m => {
         if (m.name == "options") {
-            myscript.PostMessage(optionsPort, { message: "Init" }, m.id);
+            myscript.PostMessage(optionsPort, "Init", { id: m.id });
         }
         if (m.name == "popup") {
-            myscript.PostMessage(popupPort, { message: "Init" }, m.id);
+            myscript.PostMessage(popupPort, "Init", { id: m.id });
         }
     }
 
@@ -57,8 +57,8 @@
 
 
     //バージョン確認
-    const getVersionBeforeRes = await SendNativePromise("GetVersion", {}, true);
-    if (getVersionBeforeRes == null) {
+    const getVersionRes = await SendNativePromise("GetVersion", {}, true);
+    if (getVersionRes == null) {
         browser.notifications.create("UpdateYoutube_dlForExtension", {
             type: "basic",
             iconUrl: "image/icon_enable64.png",
@@ -67,26 +67,33 @@
         });
         return;
     }
+    const nowNativeVersion = getVersionRes.version;
 
-    const latestVersion = "1.6.3";
+    const versionApiEndPoint = 'https://script.google.com/macros/s/AKfycby2jLOP78bcRSHdGbKHdgKJe-QrZTUiN2rFPOF53pnvhxHqGrVr/exec';
+    const extensionVersion = browser.runtime.getManifest().version;
+
+    const versionRes = await fetch(`${versionApiEndPoint}?extensionVersion=${extensionVersion}`);
+    const nativeVersionApiData = await versionRes.text();
+    console.log(nativeVersionApiData);
+
     //最新バージョンじゃなかったら更新
-    if (getVersionBeforeRes.version != latestVersion) {
+    if (nowNativeVersion != nativeVersionApiData) {
         const updateRes = await SendNativePromise("Update", {}, true);
         await myscript.Sleep(3000);
 
         //ちゃんと更新されたか確認
-        let getVersionAfterRes = null, i = 0;
+        let getAfterVersionRes = null, i = 0;
         if (updateRes != null) {
             while (i < 5) {
-                getVersionAfterRes = await SendNativePromise("GetVersion", {}, true);
-                if (getVersionAfterRes != null)
+                getAfterVersionRes = await SendNativePromise("GetVersion", {}, true);
+                if (getAfterVersionRes != null)
                     break;
                 await myscript.Sleep(1000);
                 i++;
             }
         }
 
-        if (updateRes == null || getVersionAfterRes == null || getVersionBeforeRes.version == getVersionAfterRes.version) {
+        if (updateRes == null || getAfterVersionRes == null || nowNativeVersion == getAfterVersionRes.version) {
             browser.notifications.create("FailUpdateYoutube_dlForExtension", {
                 type: "basic",
                 iconUrl: "image/icon_enable64.png",
@@ -98,11 +105,11 @@
                 type: "basic",
                 iconUrl: "image/icon_enable64.png",
                 title: "Native programs update ",
-                message: getVersionBeforeRes.version + " to " + getVersionAfterRes.version
+                message: nowNativeVersion + " to " + getAfterVersionRes.version
             });
         }
     } else {
-        console.log("Native programs is the Latest version! " + latestVersion);
+        console.log("Native programs is the Latest version! " + nativeVersionApiData);
     }
 
 
@@ -187,7 +194,7 @@
 
     //youtube-dlの更新
     if (option.isYoutube_dlAutoUpdate) {
-        const r = await SendNativePromise("UpdateYoutube_dl", { youtube_dlUpdateCommand:option.youtube_dlUpdateCommand}, true);
+        const r = await SendNativePromise("UpdateYoutube_dl", { youtube_dlUpdateCommand: option.youtube_dlUpdateCommand }, true);
         console.log(r);
 
         if (/Updated youtube-dl/.test(r.stdout)) {
@@ -204,7 +211,7 @@
     let isPopupOpen = false;
 
     const optionsOnMessage = async (e) => {
-        console.log(e);
+        //console.log(e);
         const m = e.body, id = e.id;
 
         if (m.isUpdateTabListener) {
@@ -231,15 +238,15 @@
 
 
         if (m.isGetUserProfile) {
-            myscript.PostMessage(optionsPort, { userProfile: userProfile }, id);
+            myscript.PostMessage(optionsPort, userProfile, { id: id });
         }
 
         if (m.isSelectDirectory) {
-            myscript.PostMessage(optionsPort, { dir: await SelectDirectoryAsync(m.initialDir) }, id);
+            myscript.PostMessage(optionsPort, await SelectDirectoryAsync(m.initialDir), { id: id });
         }
 
         if (m.isGetInitStatus) {
-            myscript.PostMessage(optionsPort, { message: "EndInit" }, id);
+            myscript.PostMessage(optionsPort, "EndInit", { id: id });
         }
 
     }
@@ -330,7 +337,7 @@
         }
 
         if (m.isGetUserProfile) {
-            myscript.PostMessage(popupPort, { userProfile: userProfile }, id);
+            myscript.PostMessage(popupPort, userProfile, { id: id });
 
         }
 
@@ -349,7 +356,7 @@
         }
 
         if (m.isGetInitStatus) {
-            myscript.PostMessage(popupPort, { message: "EndInit" }, id);
+            myscript.PostMessage(popupPort, "EndInit", { id: id });
         }
     }
 
@@ -375,7 +382,7 @@
         optionsPort.onMessage.removeListener(PostInitializing);
         optionsPort.onMessage.addListener(optionsOnMessage);
 
-        myscript.PostMessage(optionsPort, { message: "EndInit" });
+        myscript.PostMessage(optionsPort, "EndInit");
     }
 
 
@@ -383,7 +390,7 @@
         popupPort.onMessage.removeListener(PostInitializing);
         popupPort.onMessage.addListener(popupOnMessage);
 
-        myscript.PostMessage(popupPort, { message: "EndInit" });
+        myscript.PostMessage(popupPort, "EndInit");
     }
 
 
@@ -905,7 +912,7 @@
 
     const SendProccess = (id = null) => {
 
-        myscript.PostMessage(popupPort, { progresss: progresss }, id);
+        myscript.PostMessage(popupPort, { progresss: progresss }, { id: id });
     }
 
     //通知だす

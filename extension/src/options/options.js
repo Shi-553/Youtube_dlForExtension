@@ -81,7 +81,7 @@ const main = () => {
     }
 
     (async () => {
-        const userProfile = (await myscript.PostMessage(port, { isGetUserProfile: true })).userProfile;
+        const userProfile = await myscript.PostMessage(port, { isGetUserProfile: true }, { usePromise: true });
 
         if (userProfile == null)
             return;
@@ -102,10 +102,10 @@ const main = () => {
         setMainDownloadDirectory.addEventListener("change", mainDownloadDirectoryUpdate);
 
         document.getElementById("selectMainDirectory").addEventListener("click", async () => {
-            const e = (await myscript.PostMessage(port, { isSelectDirectory: true, initialDir: setMainDownloadDirectory.value })).dir;
+            const dir = await myscript.PostMessage(port, { isSelectDirectory: true, initialDir: setMainDownloadDirectory.value }, { usePromise: true });
 
-            if (e.selectDirectory != null) {
-                setMainDownloadDirectory.value = e.selectDirectory;
+            if (dir != "") {
+                setMainDownloadDirectory.value = dir;
                 mainDownloadDirectoryUpdate();
             }
 
@@ -121,10 +121,10 @@ const main = () => {
         setSubDownloadDirectory.addEventListener("change", subDownloadDirectoryUpdate);
 
         document.getElementById("selectSubDirectory").addEventListener("click", async () => {
-            const e = (await myscript.PostMessage(port, { isSelectDirectory: true, initialDir: setSubDownloadDirectory.value })).dir;
+            const dir = await myscript.PostMessage(port, { isSelectDirectory: true, initialDir: setSubDownloadDirectory.value }, { usePromise: true });
 
-            if (e.selectDirectory != null) {
-                setSubDownloadDirectory.value = e.selectDirectory;
+            if (dir != "") {
+                setSubDownloadDirectory.value = dir;
                 subDownloadDirectoryUpdate();
             }
         });
@@ -160,7 +160,7 @@ const main = () => {
 
     setUrls.addEventListener("change", async () => {
         await browser.storage.local.set({ urls: setUrls.value.replace(/\n/g, "").split(",") });
-        myscript.PostMessage(port,{
+        myscript.PostMessage(port, {
             isUpdateTabListener: true
         });
     });
@@ -206,7 +206,7 @@ const main = () => {
             option.preset[selectedKey].option != setAddOption.value ||
             option.preset[selectedKey].output != setOutputOption.value ||
             option.preset[selectedKey].filename != setFilenameOption.value) {
-            myscript.PostMessage(port,{ changePresetValue: true, key: selectedKey, isShareJson: setIsShareJson.checked });
+            myscript.PostMessage(port, { changePresetValue: true, key: selectedKey, isShareJson: setIsShareJson.checked });
         }
 
         option.preset[selectedKey].isShareJson = setIsShareJson.checked;
@@ -265,7 +265,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     const onMessage = e => {
         //console.log(e);
-        if (e.body.message == "Init") {
+        if (e.body == "Init") {
             document.getElementById("message").textContent = "Initializing...";
             document.getElementById("main").style.display = "None";
 
