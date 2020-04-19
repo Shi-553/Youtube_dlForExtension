@@ -1,7 +1,16 @@
 (async () => {
 
     let optionsPort, popupPort;
+    let isPopupOpen = false;
 
+    const PostInitializing = m => {
+        if (m.name == "options") {
+            myscript.PostMessage(optionsPort, "Init", { id: m.id });
+        }
+        if (m.name == "popup") {
+            myscript.PostMessage(popupPort, "Init", { id: m.id });
+        }
+    }
     const ConnectPostInitializing = p => {
         //console.log(p);
         p.onMessage.addListener(PostInitializing);
@@ -13,14 +22,6 @@
         if (p.name == "popup") {
             popupPort = p;
             popupPort.onDisconnect.addListener(() => { isPopupOpen = false; popupPort = null; });
-        }
-    }
-    const PostInitializing = m => {
-        if (m.name == "options") {
-            myscript.PostMessage(optionsPort, "Init", { id: m.id });
-        }
-        if (m.name == "popup") {
-            myscript.PostMessage(popupPort, "Init", { id: m.id });
         }
     }
 
@@ -78,6 +79,8 @@
 
     //最新バージョンじゃなかったら更新
     if (nowNativeVersion != nativeVersionApiData) {
+        console.log(nowNativeVersion);
+
         const updateRes = await SendNativePromise("Update", {}, true);
         await myscript.Sleep(3000);
 
@@ -92,7 +95,7 @@
                 i++;
             }
         }
-
+        console.log(getAfterVersionRes.version);
         if (updateRes == null || getAfterVersionRes == null || nowNativeVersion == getAfterVersionRes.version) {
             browser.notifications.create("FailUpdateYoutube_dlForExtension", {
                 type: "basic",
@@ -208,7 +211,6 @@
     }
 
 
-    let isPopupOpen = false;
 
     const optionsOnMessage = async (e) => {
         //console.log(e);
