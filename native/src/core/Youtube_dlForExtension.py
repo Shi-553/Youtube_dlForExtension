@@ -355,8 +355,7 @@ def Update(receivedMessage):
         sendMessage(encodeMessage(receivedMessage))
         sys.exit()
         
-    pathSplits = path.normcase(absDirectoryPath).split("\\")
-    isDebug = "debug" in pathSplits
+    isDebug = receivedMessage["isDebug"]
 
     if myFilename == "Youtube_dlForExtension.py":
         if isDebug:

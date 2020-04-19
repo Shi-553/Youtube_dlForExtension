@@ -19,9 +19,6 @@ def selectDirectory(entry,nextBu):
     entry.delete(0, tk.END)
     entry.insert(0,dirPath)
 
-    #p = subprocess.run('powershell "Get-ACL -Path \\"{}\\""'.format(dirPath),stdout=subprocess.PIPE)
-    #print(p.stdout.decode("cp932"))
-
 def install():
     finishPage.tkraise()
 
@@ -33,54 +30,82 @@ def install():
 
         resultLa["text"]+=log["message"] + "\n"
 
-    th = threading.Thread(target=InstallYoutube_dl, args=(os.path.normpath(installDirectoryEn.get()),ffmpegOptionVal.get(),callback))
+    th = threading.Thread(target=InstallYoutube_dl, args=(os.path.normpath(installDirectoryEn.get()),ffmpegOptionVal.get(),debugVal.get(),callback))
     th.start()
 
 
-def InstallYoutube_dl(folderPath,isFfmpeg,callback):
-
-    os.chdir(folderPath)
-
-    pathSplits = path.normcase(sys.argv[0]).split("\\")
-    isDebug = "debug" in pathSplits
+def InstallYoutube_dl(installFolderPath,isFfmpeg,isDebug,callback):
 
     if isDebug:
+        callback({"message":"debug mode"})
         url = "https://drive.google.com/uc?id=12a9Wt9ypabZYwJqEK-MTzZNNuve4CCde"
     else:
         url = "https://drive.google.com/uc?&id=1yhHlH-xtX2XjIa7DzEq5SOOxJT14I4A4"
 
-    try:
-        callback({"message":"Download..."})
-        req = urllib.request.Request(url)
+    installFolderPath=pathlib.Path(installFolderPath)
 
+    cwd = installFolderPath / "Youtube_dlForExtension"
+    
+    if isDebug:
+        installFolderPath=cwd
+
+        cwd = installFolderPath / "Youtube_dlForExtension"
+
+        if cwd.is_dir():
+            shutil.rmtree(str(cwd))
+
+        cwd.mkdir(parents=True,exist_ok=True)
+
+        debugDir=installFolderPath/"debug"
+        debugDir.mkdir(parents=True,exist_ok=True)
+
+        for f in debugDir.iterdir():
+            shutil.move(str(f),str(cwd))
+
+    try:
+        req = urllib.request.Request(url)
+        req.add_header("User-Agent", 'Mozilla/5.0')
+
+
+        callback({"message":"Download..."})
         try:
             with urllib.request.urlopen(req) as res:
                 with zipfile.ZipFile(BytesIO(res.read())) as zip:
-                    zip.extractall()
+                    zip.extractall(str(installFolderPath))
+
         except zipfile.BadZipfile as err:
             callback({"message":str(err)})
             callback({"message":"Retry..."})
+
             with urllib.request.urlopen(req) as res:
                 with zipfile.ZipFile(BytesIO(res.read())) as zip:
-                    zip.extractall()
-        
-        p = pathlib.Path(folderPath+"\\Youtube_dlForExtension")
+                    zip.extractall(str(installFolderPath))
 
-        for ini in p.glob("desktop.ini"):
+        finally:
+            if isDebug:
+                for f in cwd.iterdir():
+                    shutil.move(str(f),str(debugDir))
+
+                shutil.rmtree(str(cwd))
+                cwd = debugDir
+
+        
+        for ini in cwd.glob("desktop.ini"):
             ini.unlink()
 
         callback({"message":"Change registory..."})
 
-        path = "SOFTWARE\\Mozilla\\NativeMessagingHosts\\Youtube_dlForExtension"
+        path = r"SOFTWARE\Mozilla\NativeMessagingHosts\Youtube_dlForExtension"
 
-        with winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, path) as key:
-            winreg.SetValueEx(key, "", 0, winreg.REG_SZ, folderPath + "Youtube_dlForExtension\\Youtube_dlForExtension.json")
-            
+        with winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, path, access= winreg.KEY_WRITE | winreg.KEY_WOW64_64KEY) as key:
+            winreg.SetValueEx(key, "", 0, winreg.REG_SZ,str(cwd / "Youtube_dlForExtension.json"))
+
+        with winreg.CreateKeyEx(winreg.HKEY_LOCAL_MACHINE, path, access= winreg.KEY_WRITE | winreg.KEY_WOW64_32KEY) as key: 
+            winreg.SetValueEx(key, "", 0, winreg.REG_SZ,str(cwd / "Youtube_dlForExtension.json"))
 
         if isFfmpeg:
             callback({"message":"Download ffmpeg..."})
 
-            os.chdir(folderPath + "Youtube_dlForExtension\\")
             url = "https://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-20200412-f1894c2-win32-static.zip"
             
 
@@ -89,14 +114,14 @@ def InstallYoutube_dl(folderPath,isFfmpeg,callback):
 
             with urllib.request.urlopen(req) as res:
                 with zipfile.ZipFile(BytesIO(res.read())) as zip:
-                    zip.extractall()
+                    zip.extractall(cwd)
                     list = zip.namelist()
                     for x in list:
                         if "ffmpeg.exe" in x:
-                            shutil.move(x,folderPath + "Youtube_dlForExtension\\ffmpeg.exe")
+                            shutil.move(str(cwd / x),str(cwd / "ffmpeg.exe"))
 
                         if "ffprobe.exe" in x:
-                            shutil.move(x,folderPath + "Youtube_dlForExtension\\ffprobe.exe")
+                            shutil.move(str(cwd / x),str(cwd / "ffprobe.exe"))
 
     except Exception as err:
         callback({"error":True,"finish":True,"message":str(err)})
@@ -183,6 +208,15 @@ if __name__ == "__main__":
     ffmpegOptionVal.set(True)
     ffmpegOptionCb = tk.Checkbutton(optionPage, text="Download ffmpeg.exe.",font=("",13),variable=ffmpegOptionVal)
     ffmpegOptionCb.place(x=38,y=100)
+    
+    pathSplits = os.path.normcase(sys.argv[0]).split("\\")
+    isDebug = "debug" in pathSplits
+
+    debugVal = tk.BooleanVar()
+    debugVal.set(isDebug)
+    debugCb = tk.Checkbutton(optionPage, text="Is debug mode.",font=("",13),variable=debugVal)
+    debugCb.place(x=38,y=135)
+
     
     nextBu = tk.Button(optionPage,text="Install", width=10,font=("",10),command=lambda:install())
     nextBu.place(x=300,y=230)

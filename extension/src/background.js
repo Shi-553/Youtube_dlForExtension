@@ -1,3 +1,11 @@
+
+let isDebug = false;
+
+const SetTemporary = (details) => {
+    isDebug = details.temporary;
+}
+browser.runtime.onInstalled.addListener(SetTemporary);
+
 (async () => {
 
     let optionsPort, popupPort;
@@ -27,9 +35,12 @@
 
     browser.runtime.onConnect.addListener(ConnectPostInitializing);
 
+
     //プロミス版 await で繋げられるが複数回返せない
     const SendNativePromise = async (toSendName, message, isSuppressEror = false) => {
         try {
+            message.isDebug = isDebug;
+
             const res = await browser.runtime.sendNativeMessage("Youtube_dlForExtension",
                 {
                     name: toSendName,
@@ -55,7 +66,8 @@
         }
     }
 
-
+    await myscript.Sleep(500);
+    browser.runtime.onInstalled.removeListener(SetTemporary);
 
     //バージョン確認
     const getVersionRes = await SendNativePromise("GetVersion", {}, true);
@@ -1001,6 +1013,8 @@
             console.error(message);
             return;
         }
+
+        message.isDebug = isDebug;
 
         const callbackString = callback.name.toString();
 
