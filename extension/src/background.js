@@ -89,8 +89,24 @@ browser.runtime.onInstalled.addListener(SetTemporary);
     const nativeVersionApiData = await versionRes.text();
     console.log(nativeVersionApiData);
 
-    //最新バージョンじゃなかったら更新
-    if (nowNativeVersion != nativeVersionApiData) {
+
+    const IsNeedUpdate = (now, api) => {
+        const nowSplits = now.split(".").map(s => parseInt(s));
+        const apiSplits = api.split(".").map(s => parseInt(s));
+        for (let i = 0; i < 3; i++) {
+            if (nowSplits[i] == apiSplits[i])
+                continue;
+
+            if (nowSplits[i] < apiSplits[i])
+                return true;
+            else
+                return false;
+        }
+        return false;
+    }
+
+    //アップデートが必要なら更新
+    if (IsNeedUpdate(nowNativeVersion, nativeVersionApiData)) {
         console.log(nowNativeVersion);
 
         const updateRes = await SendNativePromise("Update", {}, true);
