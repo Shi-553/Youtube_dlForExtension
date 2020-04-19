@@ -541,7 +541,7 @@ exit
 
 
 def GetVersion(receivedMessage):
-    receivedMessage["version"] = "1.7"
+    receivedMessage["version"] = "1.7.0"
     sendMessage(encodeMessage(receivedMessage))
 
         
