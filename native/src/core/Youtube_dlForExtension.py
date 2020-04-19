@@ -202,14 +202,14 @@ def To_Youtube_dl(receivedMessage):
                 receivedMessage["returnJson"] = json.loads(receivedMessage["stdout"])
 
             except json.JSONDecodeError as e:
-               receivedMessage["e"] = str(e)
+               receivedMessage["error"] = str(e)
             
         #sendMessage(encodeMessage(receivedMessage))
 
     except json.JSONDecodeError as e:
         sendMessage(encodeMessage(receivedMessage))
         receivedMessage["status"] = "error"
-        receivedMessage["e"] = str(e)
+        receivedMessage["error"] = str(e)
         sendMessage(encodeMessage(receivedMessage))
         return
 
