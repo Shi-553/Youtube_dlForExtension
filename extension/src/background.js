@@ -66,6 +66,50 @@ browser.runtime.onInstalled.addListener(SetTemporary);
         }
     }
 
+
+    const notificationIds = {};
+    //通知クリックでディレクトリ開く
+    browser.notifications.onClicked.addListener(async id => {
+        // console.log(id)
+        if (id == "FailUpdateYoutube_dlForExtension") {
+            browser.tabs.create({
+                active: true,
+                url: "https://drive.google.com/drive/u/1/folders/1Z2t8F5grpS4x_o54yuQMIJ01YrI16YBm"
+            });
+            return;
+        }
+        if (id == "NotInstallPackage") {
+            browser.tabs.create({
+                active: true,
+                url: "https://www.microsoft.com/en-US/download/details.aspx?id=5555"
+            });
+            return;
+        }
+        const notificationItem = notificationIds[id];
+        //console.log(notificationIds);
+        //console.log(id);
+        if (notificationItem == null || !notificationItem.showExplorerLink)
+            return;
+
+        const message = {
+            path: notificationItem.filePath,
+            isSelect: true,
+            key: notificationItem.key,
+            tabId: notificationItem.tabId,
+            url: notificationItem.url
+        };
+
+
+        //console.log(message);
+        SendNative("DirectoryManager", ReceiveShowDirectory, message);
+        delete notificationIds[id];
+    });
+
+    const ReceiveShowDirectory = (res, port) => {
+        console.log(res);
+    }
+
+
     await myscript.Sleep(500);
     browser.runtime.onInstalled.removeListener(SetTemporary);
 
@@ -592,6 +636,15 @@ browser.runtime.onInstalled.addListener(SetTemporary);
 
         if (res.status != "finished")
             return;
+        if (res.returncode == 3221225781) {
+            browser.notifications.create("NotInstallPackage", {
+                type: "basic",
+                iconUrl: "image/icon_enable64.png",
+                title: "The required package not installed",
+                message: "The package required for Youtube-dl is not installed.\nClick..."
+            });
+            return;
+        }
 
         const r = await Promise.all([browser.storage.local.get(), browser.tabs.query({ currentWindow: true, active: true })]);
         const option = r[0];
@@ -965,41 +1018,6 @@ browser.runtime.onInstalled.addListener(SetTemporary);
         });
     }
 
-    const notificationIds = {};
-
-    //通知クリックでディレクトリ開く
-    browser.notifications.onClicked.addListener(async id => {
-        // console.log(id)
-        if (id == "FailUpdateYoutube_dlForExtension") {
-            browser.tabs.create({
-                active: true,
-                url: "https://drive.google.com/drive/u/1/folders/1Z2t8F5grpS4x_o54yuQMIJ01YrI16YBm"
-            });
-            return;
-        }
-        const notificationItem = notificationIds[id];
-        //console.log(notificationIds);
-        //console.log(id);
-        if (notificationItem == null || !notificationItem.showExplorerLink)
-            return;
-
-        const message = {
-            path: notificationItem.filePath,
-            isSelect: true,
-            key: notificationItem.key,
-            tabId: notificationItem.tabId,
-            url: notificationItem.url
-        };
-
-
-        //console.log(message);
-        SendNative("DirectoryManager", ReceiveShowDirectory, message);
-        delete notificationIds[id];
-    });
-
-    const ReceiveShowDirectory = (res, port) => {
-        console.log(res);
-    }
 
 
 
