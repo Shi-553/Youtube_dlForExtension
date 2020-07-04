@@ -524,6 +524,7 @@ exit
         subprocess.Popen([bat],
                             creationflags= subprocess.CREATE_BREAKAWAY_FROM_JOB,
                             startupinfo=startupinfo)
+
     else:
         receivedMessage["status"] = "error"
         receivedMessage["message"] = "Is not .py or .exe."

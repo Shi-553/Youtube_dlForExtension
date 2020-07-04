@@ -46,6 +46,12 @@ browser.runtime.onInstalled.addListener(SetTemporary);
                     name: toSendName,
                     value: message
                 });
+
+            if (res == null) {
+                console.error("return null");
+                return null;
+            }
+
             if (res.status == "error") {
                 console.error(res);
             } else {
