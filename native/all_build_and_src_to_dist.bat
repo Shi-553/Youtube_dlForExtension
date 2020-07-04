@@ -5,7 +5,7 @@ echo;
 echo -------------------------------------------------------------------------------------
 echo;
 cd /d %~dp0
-call ".\src\core\Build_at_PyInstaller.bat"
+echo call ".\src\core\Build_at_PyInstaller.bat"
 echo;
 echo -------------------------------------------------------------------------------------
 echo;

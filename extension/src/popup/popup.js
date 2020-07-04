@@ -39,9 +39,9 @@ const main = async () => {
     });
 
     const SetItem = async () => {
-        const message = document.getElementById("message") || document.createElement("div");
-        message.className = "message";
-        message.id = "message";
+        document.getElementById("headItem").style.display = "block";
+        document.getElementById("headProgress").style.display = "none";
+        const message = document.createElement("div");
 
         if (item == "Getting") {
             ul.textContent = "";
@@ -255,6 +255,8 @@ const main = async () => {
     }
 
     const SetProgress = () => {
+        document.getElementById("headItem").style.display = "none";
+        document.getElementById("headProgress").style.display = "block";
         ul.textContent = "";
 
         const keys = Object.keys(progresss);

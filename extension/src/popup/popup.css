@@ -44,25 +44,34 @@
     /*//border: 1px double Gray;
     //background-color: rgba(255, 255, 255,0.6);*/
 }
-#cacheRefresh {
-    margin-top:15px;
+        #headItem {
+            height: 30px;
+        }
+#main {
+    position: page;
+    top:0vw;
+}
+#head {
+    margin-bottom: 0;
+    height: 30px;
+}
+    #cacheRefresh {
+    margin-top: 15px;
     margin-bottom: 0;
     padding-bottom: 0;
+    width: 118px;
+    margin-left: 71px;
 }
 #list {
     max-width: 500px;
     min-width: 430px;
     padding: 0;
+    margin-top: 15px;
     margin-bottom: 0;
-    margin-top: 0;
     list-style: none;
     background-color: rgba(255, 255, 255,0.5);
 }
-.message {
-    padding-bottom: 4px;
-    padding-top: 4px;
 
-}
 .formats {
     /*padding: 0;*/
     margin-bottom: 0;
@@ -105,25 +114,25 @@ html {
     /*/background-color:#d0d0d0;/*/
     border: 2px solid Gray;
 }
-footer {
+header {
     /*height: 30px;*/
-    max-height:30px;
-    min-height:30px;
+    max-height:18px;
+    min-height:18px;
 }
 #toOption {
     position: fixed;
-    bottom: -2px;
+    top: -2px;
     left: -2px;
-    height: 30px;
-    width: 51%;
+    height: 35px;
+    width: 51vw;
     font-size:110%;
 }
 #switch {
     position: fixed;
-    bottom: -2px;
-    right: -2px;
-    height: 30px;
-    width: 51%;
+    top: -2px;
+    left: 50vw;
+    height: 35px;
+    width: 51vw;
     font-size:110%;
 }
 .size {
@@ -170,7 +179,8 @@ footer {
     margin-top: 10px;
 }
 #stopDownload {
-    margin-left:20px;
+    margin-left:32px;
+    margin-top: 11px;
 }
 span {
    /* color:white;

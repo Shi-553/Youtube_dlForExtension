@@ -79,12 +79,14 @@ def writeJson(p,dictionary):
 #JSONファイルを消す
 def removeJson(receivedMessage):
     p = path.normpath(path.join(absDirectoryPath, "JSONCache\{}.json".format(urlToFilename(receivedMessage["url"] + str(receivedMessage["tabId"]) + receivedMessage["key"]))))
-
+    
     if not path.isfile(p):
-        sendMessage(encodeMessage(None))
+        receivedMessage["status"] = "false"
+        sendMessage(encodeMessage(receivedMessage))
     else:
+        receivedMessage["status"] = "true"
         os.remove(p)
-        sendMessage(encodeMessage(True))
+        sendMessage(encodeMessage(receivedMessage))
         
 
 
@@ -108,7 +110,7 @@ def To_Youtube_dl(receivedMessage):
         receivedMessage["command"] = receivedMessage["command"].replace("<JSONPATH>",absPath,1)
         writeJson(absPath,receivedMessage["json"])
             
-   # sendMessage(encodeMessage(receivedMessage))
+    #sendMessage(encodeMessage(receivedMessage))
 
     #dirがあれば置き換えと存在確認
     if "dir" in receivedMessage:
@@ -135,9 +137,9 @@ def To_Youtube_dl(receivedMessage):
             
             if receivedMessage["overwrite"] == "Yes":
                 os.remove(receivedMessage["filePath"])
-                To_Youtube_dl(receivedMessage)
                 receivedMessage["status"] = "Overwritten"
                 sendMessage(encodeMessage(receivedMessage))
+                To_Youtube_dl(receivedMessage)
             
             elif receivedMessage["overwrite"] == "Save as":
                 receivedMessage["status"] = "Save as"
@@ -158,60 +160,56 @@ def To_Youtube_dl(receivedMessage):
             return
     
     sendMessage(encodeMessage(receivedMessage))
+
     #送るところ本体
-    try:
-        if ("usePopen" in receivedMessage) and (receivedMessage["usePopen"]):
-            proc = subprocess.Popen(receivedMessage["command"],
-                                    cwd=receivedMessage["dir"],
-                                    stdout = subprocess.PIPE,
-                                    stderr = subprocess.STDOUT,
-                                    startupinfo=startupinfo)
-            
-            receivedMessage["status"] = "Progress"
-            for line in iter(proc.stdout.readline,b""):
-                receivedMessage["stdout"] = line.rstrip().decode(sys.stdout.encoding,errors="ignore")
-                sendMessage(encodeMessage(receivedMessage))
-
-            proc.wait()
-
-        else:
-            proc = subprocess.run(receivedMessage["command"],
+    if ("usePopen" in receivedMessage) and (receivedMessage["usePopen"]):
+        proc = subprocess.Popen(receivedMessage["command"],
                                 cwd=receivedMessage["dir"],
                                 stdout = subprocess.PIPE,
                                 stderr = subprocess.STDOUT,
                                 startupinfo=startupinfo)
+            
+        receivedMessage["status"] = "Progress"
+        for line in iter(proc.stdout.readline,b""):
+            receivedMessage["stdout"] = line.rstrip().decode(sys.stdout.encoding,errors="ignore")
+            sendMessage(encodeMessage(receivedMessage))
 
-            if proc.stdout is not None :
-                receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,errors="ignore")
-            else:
-                receivedMessage["stdout"] = ""
+        proc.wait()
+
+    else:
+        proc = subprocess.run(receivedMessage["command"],
+                            cwd=receivedMessage["dir"],
+                            stdout = subprocess.PIPE,
+                            stderr = subprocess.STDOUT,
+                            startupinfo=startupinfo)
+
+        if proc.stdout is not None :
+            receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,errors="ignore")
+        else:
+            receivedMessage["stdout"] = ""
             
 
-        receivedMessage["status"] = "finishedDownload"
-        receivedMessage["returncode"] = proc.returncode
+    receivedMessage["status"] = "finishedDownload"
+    receivedMessage["returncode"] = proc.returncode
 
-        #sendMessage(encodeMessage(receivedMessage))
+    #sendMessage(encodeMessage(receivedMessage))
 
         
-        if (path.isfile(absPath)):
-            os.remove(absPath)
+    if (path.isfile(absPath)):
+        os.remove(absPath)
 
-        #jsonがなくてできるならJSON化
-        if " -j " in receivedMessage["command"]:
-            try:
-                receivedMessage["returnJson"] = json.loads(receivedMessage["stdout"])
+    #jsonがなくてできるならJSON化
+    if " -j " in receivedMessage["command"]:
+        try:
+            receivedMessage["returnJson"] = json.loads(receivedMessage["stdout"])
 
-            except json.JSONDecodeError as e:
-               receivedMessage["error"] = str(e)
+        except json.JSONDecodeError as e:
+            #receivedMessage["status"] = "error"
+            receivedMessage["error"] = str(e)
+            #sendMessage(encodeMessage(receivedMessage))
             
-        #sendMessage(encodeMessage(receivedMessage))
+    #sendMessage(encodeMessage(receivedMessage))
 
-    except json.JSONDecodeError as e:
-        sendMessage(encodeMessage(receivedMessage))
-        receivedMessage["status"] = "error"
-        receivedMessage["error"] = str(e)
-        sendMessage(encodeMessage(receivedMessage))
-        return
 
     #マージするとき拡張子が変わったらここ
     m = re.search("WARNING: Requested formats are incompatible for merge and will be merged into (.+?)\.", receivedMessage["stdout"])
@@ -275,7 +273,7 @@ def directoryManager(receivedMessage,isValueReturn=False):
 #    sendMessage(encodeMessage(receivedMessage))
         
     if "path" not in receivedMessage:
-        iDir = replaceUserProfile(receivedMessage["initialDir"])
+        iDir = path.normpath(replaceUserProfile(receivedMessage["initialDir"]))
         if not path.isdir(iDir):
             iDir = None
         root = tkinter.Tk()
@@ -525,7 +523,6 @@ exit
 
         subprocess.Popen([bat],
                             creationflags= subprocess.CREATE_BREAKAWAY_FROM_JOB,
-                            start_new_session=True,
                             startupinfo=startupinfo)
     else:
         receivedMessage["status"] = "error"
@@ -540,7 +537,7 @@ exit
 
 
 def GetVersion(receivedMessage):
-    receivedMessage["version"] = "1.7.0"
+    receivedMessage["version"] = "1.7.3"
     sendMessage(encodeMessage(receivedMessage))
 
         

@@ -294,19 +294,15 @@ browser.runtime.onInstalled.addListener(SetTemporary);
         }
 
         if (m.changePresetValue) {
-            for (let url of Object.keys(cache)) {
-                if (m.isShareJson) {
-                    for (let key of Object.keys(cache[url])) {
-                        if (ports[ReceiveGetJson.name.toString()][url + key] != null)
-                            ports[ReceiveGetJson.name.toString()][url + key].port.disconnect();
-                    }
-                    cache[url].json = null;
+            const name = ReceiveGetJson.name.toString();
 
-                } else {
-                    if (ports[ReceiveGetJson.name.toString()][url + m.key] != null)
-                        ports[ReceiveGetJson.name.toString()][url + m.key].port.disconnect();
-                }
-                cache[url]["options"][m.key] = null;
+            for (let url of Object.keys(cache)) {
+
+                if (ports[name][url + m.key] != null && ports[name][url + m.key].port != null)
+                    ports[name][url + m.key].port.disconnect();
+
+                if (cache[url]["options"] != null)
+                    cache[url]["options"][m.key] = null;
             }
         }
 
@@ -336,9 +332,10 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             const reDownloadStr = ReceiveDownload.name.toString();
             for (let key of Object.keys(ports[reDownloadStr])) {
                 console.log("StopDownload " + key);
-                ports[reDownloadStr][key].port.disconnect();
-                SendNativePromise("RemoveJson", ports[reDownloadStr][key].message);
-
+                if (ports[reDownloadStr][key].port != null) {
+                    ports[reDownloadStr][key].port.disconnect();
+                    SendNativePromise("RemoveJson", ports[reDownloadStr][key].message);
+                }
             }
             waitProgress = [];
             let stopDownloadStr = "";
@@ -356,13 +353,14 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             SendProccess(id)
 
             myscript.UpdateBadgeText(GetDownloadProgressCount().toString());
-            browser.notifications.create("stopDownloadAll", {
-                type: "basic",
-                iconUrl: "image/icon_enable64.png",
-                title: "Stop Download All",
-                message: stopDownloadStr
-            });
-
+            if (!option.isDisableHealthyNotification) {
+                browser.notifications.create("stopDownloadAll", {
+                    type: "basic",
+                    iconUrl: "image/icon_enable64.png",
+                    title: "Stop Download All",
+                    message: stopDownloadStr
+                });
+            }
         }
 
         if (m.restartDownload) {
@@ -385,7 +383,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             waitProgress = waitProgress.filter(p => p != progresss[m.progress.url + m.progress.key]);
 
             const p = ports[ReceiveDownload.name.toString()][m.progress.url + m.progress.key];
-            if (p) {
+            if (p != null && p.port != null) {
                 p.port.disconnect();
             }
             progresss[m.progress.url + m.progress.key].isDownloading = "Stop";
@@ -517,14 +515,14 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             if (tabUrl == url) {
                 myscript.UpdateBrowserActionIcon(false, tabId);
             }
+            console.log("CacheRefresh " + url);
             cache[url] = { "options": {} };
+
             const str = ReceiveGetJson.name.toString();
-            for (let p of Object.keys(ports[str])) {
-                if (p == tabId) {
-                    for (let p2 of Object.keys(ports[str][p])) {
-                        console.log("CacheRefresh " + p + " " + p2);
-                        ports[str][p][p2].port.disconnect();
-                    }
+
+            for (let preset of Object.keys(option.preset)) {
+                if (ports[str][url + preset] != null && ports[str][url + preset].port != null) {
+                    ports[str][url + preset].port.disconnect();
                 }
             }
         }
@@ -759,7 +757,8 @@ browser.runtime.onInstalled.addListener(SetTemporary);
                 dir = await SelectDirectoryAsync(option.mainDownloadDirectory);
 
                 if (dir == "") {
-                    NoticeDownloadStatus(e, false, "Cancel download.", e.filename);
+                    if (!option.isDisableHealthyNotification)
+                        NoticeDownloadStatus(e, false, "Cancel download.", e.filename);
                     return;
                 }
                 break;
@@ -784,7 +783,6 @@ browser.runtime.onInstalled.addListener(SetTemporary);
 
 
         SendNative("To_Youtube_dl", ReceiveDownloadPrepare, {
-            dir: dir,//.replace(/\\+/g, "\\\\"),
             command: `youtube-dl --no-playlist -j --load-info-json "<JSONPATH>" ${outputOption}`,
             url: e.url,
             domain: e.url.split('/')[2],
@@ -804,13 +802,14 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             json = res.json;
         if (json == null)
             json = { _filename: "" };
-        NoticeDownloadStatus(res, false, "Prepare Download", json._filename);
 
+        if (!option.isDisableHealthyNotification) {
+            NoticeDownloadStatus(res, false, "Prepare Download", json._filename);
+        }
 
         res.messageToSend.json = res.returnJson;
 
-        res.messageToSend.dir = res.dir;
-        res.messageToSend.filePath = `${res.dir}\\${res.returnJson._filename}`;
+        res.messageToSend.filePath = `${res.messageToSend.dir}\\${res.returnJson._filename}`;
 
         const canDownload = await CanDownload(res.domain);
         //console.log(canDownload);
@@ -955,17 +954,19 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             }
         }
 
-        if (res.status == "AskOverwrite") {
+        if (res.status == "AskOverwrite" && !option.isDisableHealthyNotification) {
             NoticeDownloadStatus(res, false, "Do you want to overwrite it?", res.filePath);
         }
         if (res.status == "DoesNotExistDirectory") {
+            progresss[res.url + res.key].isDownloading = "Failed";
             NoticeDownloadStatus(res, false, "Does not exist directory", res.dir);
         }
         if (res.status == "NotOverwritten") {
-            NoticeDownloadStatus(res, true, "Did not overwrite", `${res.filePath}\n is already exists.`);
+            if (!option.isDisableHealthyNotification)
+                NoticeDownloadStatus(res, true, "Did not overwrite", `${res.filePath}\n is already exists.`);
             progresss[res.url + res.key].isDownloading = "Finish";
         }
-        if (res.status == "Overwritten") {
+        if (res.status == "Overwritten" && !option.isDisableHealthyNotification) {
             NoticeDownloadStatus(res, true, "Overwritten", res.filePath);
         }
 
@@ -973,7 +974,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             NoticeDownloadStatus(res, false, "Started download", res.filePath)
         }
 
-        if (res.status == "finished" && res.overwrite != "Yes") {
+        if (res.status == "finished") {
 
             if (res.returncode == 0) {
                 NoticeDownloadStatus(res, true, "Successful download", res.filePath);
@@ -1058,7 +1059,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             if (ports[callbackString] == null)
                 ports[callbackString] = {};
 
-            if (ports[callbackString][message.url + message.key] != null)
+            if (ports[callbackString][message.url + message.key] != null && ports[callbackString][message.url + message.key].port != null)
                 ports[callbackString][message.url + message.key].port.disconnect();
 
             ports[callbackString][message.url + message.key] = { port: port, message: message };
@@ -1071,7 +1072,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
                 }
             };
             port.onMessage.addListener(listener);
-            //port.onDisconnect.addListener(res => { console.log(res); });
+            port.onDisconnect.addListener(res => { ports[callbackString][message.url + message.key].port = null; });
 
             //console.log(message);
             port.postMessage({
