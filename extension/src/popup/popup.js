@@ -81,7 +81,6 @@ const main = async () => {
 
         const labelAddO = document.createElement("label");
         newItem.appendChild(labelAddO);
-        labelAddO.style.cursor = "pointer";
 
         const addO = document.createElement("input");
         addO.className = "addO";
@@ -423,6 +422,12 @@ const main = async () => {
     document.getElementById("cacheRefresh").addEventListener("click", () => {
         GetJson(true);
         ul.innerHTML = "";
+    });
+    document.getElementById("toReview").addEventListener("click", () => {
+        browser.tabs.create({
+            url: "https://addons.mozilla.org/ja/firefox/addon/youtube-dlforextension/"
+        });
+        close();
     });
     document.getElementById("switch").addEventListener("click", () => {
         console.log(item);

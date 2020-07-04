@@ -78,3 +78,23 @@ div{
 h3 {
     margin-top: 50px;
 }
+
+button {
+    cursor: pointer
+}
+
+input[type=button] {
+    cursor: pointer
+}
+
+input[type=checkbox] {
+    cursor: pointer
+}
+
+select {
+    cursor: pointer
+}
+
+label {
+    cursor: pointer
+}

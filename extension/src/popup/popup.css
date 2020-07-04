@@ -62,6 +62,13 @@
     width: 118px;
     margin-left: 71px;
 }
+#toReview {
+    position:relative;
+        width: 25px;
+    top: 6px;
+    margin-left: 10px;
+    margin-bottom: 0px;
+}
 #list {
     max-width: 500px;
     min-width: 430px;
@@ -201,4 +208,19 @@ textarea {
 }
 select{
     background-color: rgba(255, 255, 255,0.8);
+}
+button {
+    cursor:pointer
+}
+input[type=button] {
+    cursor:pointer
+}
+input[type=checkbox] {
+    cursor: pointer
+}
+select {
+    cursor: pointer
+}
+label {
+    cursor: pointer
 }
