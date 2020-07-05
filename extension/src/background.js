@@ -923,7 +923,10 @@ browser.runtime.onInstalled.addListener(SetTemporary);
 
                         res.messageToSend.messageToSend = JSON.parse(JSON.stringify(res.messageToSend));
                         SendNative("To_Youtube_dl", ReceiveDownload, res.messageToSend);
-                        NoticeDownloadStatus(res, false, "Worning download.\nAuto retry.", res.json._filename);
+
+                        if (!option.isDisableHealthyNotification) {
+                            NoticeDownloadStatus(res, false, "Worning download.\nAuto retry.", res.json._filename);
+                        }
 
                     } else {
                         NoticeDownloadStatus(res, true, "Worning download.\nThe download is not progressing at all, so i will exit.", res.json._filename);
