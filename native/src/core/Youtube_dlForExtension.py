@@ -182,6 +182,8 @@ def To_Youtube_dl(receivedMessage):
                             stdout = subprocess.PIPE,
                             stderr = subprocess.STDOUT,
                             startupinfo=startupinfo)
+        
+        sendMessage(encodeMessage(receivedMessage))
 
         if proc.stdout is not None :
             receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,errors="ignore")
@@ -192,7 +194,7 @@ def To_Youtube_dl(receivedMessage):
     receivedMessage["status"] = "finishedDownload"
     receivedMessage["returncode"] = proc.returncode
 
-    #sendMessage(encodeMessage(receivedMessage))
+    sendMessage(encodeMessage(receivedMessage))
 
         
     if (path.isfile(absPath)):
@@ -201,14 +203,30 @@ def To_Youtube_dl(receivedMessage):
     #jsonがなくてできるならJSON化
     if " -j " in receivedMessage["command"]:
         try:
-            receivedMessage["returnJson"] = json.loads(receivedMessage["stdout"])
+            jsonData = json.loads(receivedMessage["stdout"])
+            sendMessage(encodeMessage(jsonData))
+            sendMessage(encodeMessage(sys.getsizeof(json.dumps(jsonData))))
+
+            del jsonData["requested_formats"]
+
+            for format in jsonData["formats"]:
+                sendMessage(encodeMessage(format))
+                if "fragments" in format:
+                    del format["fragments"]
+            
+            sendMessage(encodeMessage(jsonData))
+            sendMessage(encodeMessage(sys.getsizeof(json.dumps(jsonData))))
+            receivedMessage["returnJson"]=jsonData
+
+            sendMessage(encodeMessage(sys.getsizeof(json.dumps(receivedMessage))))
 
         except json.JSONDecodeError as e:
             #receivedMessage["status"] = "error"
             receivedMessage["error"] = str(e)
-            #sendMessage(encodeMessage(receivedMessage))
+            sendMessage(encodeMessage(str(e)))
+            sendMessage(encodeMessage(receivedMessage))
             
-    #sendMessage(encodeMessage(receivedMessage))
+    sendMessage(encodeMessage(receivedMessage))
 
 
     #マージするとき拡張子が変わったらここ
@@ -523,7 +541,7 @@ exit
 
         subprocess.Popen([bat],
                             creationflags= subprocess.CREATE_BREAKAWAY_FROM_JOB,
-                            startupinfo=startupinfo)
+                            startupinfo=None)
 
     else:
         receivedMessage["status"] = "error"
@@ -538,7 +556,7 @@ exit
 
 
 def GetVersion(receivedMessage):
-    receivedMessage["version"] = "1.7.3"
+    receivedMessage["version"] = "1.7.4"
     sendMessage(encodeMessage(receivedMessage))
 
         
@@ -605,6 +623,7 @@ try:
         GetVersion(receivedMessage["value"])
     
 except Exception as e:
+
     tb = traceback.format_exc()
     printErr(tb)
 

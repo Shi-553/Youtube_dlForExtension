@@ -106,7 +106,7 @@ def InstallYoutube_dl(installFolderPath,isFfmpeg,isDebug,callback):
         if isFfmpeg:
             callback({"message":"Download ffmpeg..."})
 
-            url = "https://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-20200412-f1894c2-win32-static.zip"
+            url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
             
 
             req = urllib.request.Request(url)
