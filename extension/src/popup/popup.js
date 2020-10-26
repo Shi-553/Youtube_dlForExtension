@@ -452,6 +452,8 @@ let port;
 window.addEventListener("DOMContentLoaded", async () => {
     port = browser.runtime.connect("Youtube_dlForExtension@SHi", { name: "popup" });
 
+    console.log("port");
+
     const onMessage = e => {
         if (e.body == "Init") {
             document.getElementById("message").textContent = "Initializing...";
@@ -462,6 +464,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("main").style.display = "block";
 
             port.onMessage.removeListener(onMessage);
+            console.log("main");
             main();
 
         }

@@ -636,7 +636,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
 
     const cache = {};
     const ReceiveGetJson = async (res, port) => {
-        //console.log(res);
+        console.log(res);
 
         if (res.status != "finished")
             return;
@@ -772,8 +772,8 @@ browser.runtime.onInstalled.addListener(SetTemporary);
                 dir = option.subDownloadDirectory;
         }
 
-
-        const code = `youtube-dl --no-playlist --load-info-json "<JSONPATH>" ${e.selectFormat != null ? "-f " + e.selectFormat : ""} ${e.filename} ${outputOption} ${selectedPreset.option} --newline`;
+ //--load-info-json "<JSONPATH>"
+        const code = `youtube-dl --no-playlist ${e.selectFormat != null ? "-f " + e.selectFormat : ""} ${e.filename} ${outputOption} ${selectedPreset.option} --newline "${e.url}"`;
 
 
         const messageToSend = {
@@ -787,9 +787,9 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             usePopen: true
         };
 
-
+        //--load-info-json "<JSONPATH>"
         SendNative("To_Youtube_dl", ReceiveDownloadPrepare, {
-            command: `youtube-dl --no-playlist -j --load-info-json "<JSONPATH>" ${outputOption}`,
+            command: `youtube-dl --no-playlist -j  ${outputOption}`,
             url: e.url,
             domain: e.url.split('/')[2],
             json: e.json,
@@ -800,7 +800,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
     }
 
     const ReceiveDownloadPrepare = async (res, port) => {
-        //console.log(res);
+        console.log(res);
         if (res.status != "finished")
             return;
         let json = res.returnJson;
@@ -813,9 +813,9 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             NoticeDownloadStatus(res, false, "Prepare Download", json._filename);
         }
 
-        res.messageToSend.json = res.returnJson;
+        res.messageToSend.json = json;
 
-        res.messageToSend.filePath = `${res.messageToSend.dir}\\${res.returnJson._filename}`;
+        res.messageToSend.filePath = `${res.messageToSend.dir}\\${json._filename}`;
 
         const canDownload = await CanDownload(res.domain);
         //console.log(canDownload);
@@ -824,7 +824,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             url: res.url,
             key: res.key,
             isDownloading: canDownload ? "Download" : "Wait",
-            json: res.returnJson,
+            json: json,
             domain: res.domain,
             messageToSend: res.messageToSend
         };
