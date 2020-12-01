@@ -11,7 +11,9 @@
     "activeTab",
     "tabs",
     "storage",
-    "nativeMessaging"
+    "nativeMessaging",
+    "webRequest",
+    "<all_urls>"
   ],
 
   "browser_specific_settings": {

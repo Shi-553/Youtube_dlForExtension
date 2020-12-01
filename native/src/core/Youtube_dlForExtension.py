@@ -183,7 +183,7 @@ def To_Youtube_dl(receivedMessage):
                             stderr = subprocess.STDOUT,
                             startupinfo=startupinfo)
         
-        sendMessage(encodeMessage(receivedMessage))
+        #sendMessage(encodeMessage(receivedMessage))
 
         if proc.stdout is not None :
             receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,errors="ignore")
@@ -194,7 +194,7 @@ def To_Youtube_dl(receivedMessage):
     receivedMessage["status"] = "finishedDownload"
     receivedMessage["returncode"] = proc.returncode
 
-    sendMessage(encodeMessage(receivedMessage))
+    #sendMessage(encodeMessage(receivedMessage))
 
         
     if (path.isfile(absPath)):
@@ -204,21 +204,20 @@ def To_Youtube_dl(receivedMessage):
     if " -j " in receivedMessage["command"]:
         try:
             jsonData = json.loads(receivedMessage["stdout"])
-            sendMessage(encodeMessage(jsonData))
-            sendMessage(encodeMessage(sys.getsizeof(json.dumps(jsonData))))
 
-            del jsonData["requested_formats"]
+            #1MB制限のために使わない大きいデータを消す
+            if "requested_formats" in jsonData:
+                del jsonData["requested_formats"]
 
-            for format in jsonData["formats"]:
-                sendMessage(encodeMessage(format))
-                if "fragments" in format:
-                    del format["fragments"]
+            if "formats" in jsonData:
+                for format in jsonData["formats"]:
+                    if "fragments" in format:
+                        del format["fragments"]
             
-            sendMessage(encodeMessage(jsonData))
-            sendMessage(encodeMessage(sys.getsizeof(json.dumps(jsonData))))
             receivedMessage["returnJson"]=jsonData
+            receivedMessage["stdout"]= ""
 
-            sendMessage(encodeMessage(sys.getsizeof(json.dumps(receivedMessage))))
+            #sendMessage(encodeMessage(sys.getsizeof(json.dumps(receivedMessage))))
 
         except json.JSONDecodeError as e:
             #receivedMessage["status"] = "error"
@@ -226,7 +225,7 @@ def To_Youtube_dl(receivedMessage):
             sendMessage(encodeMessage(str(e)))
             sendMessage(encodeMessage(receivedMessage))
             
-    sendMessage(encodeMessage(receivedMessage))
+    #sendMessage(encodeMessage(receivedMessage))
 
 
     #マージするとき拡張子が変わったらここ
@@ -541,7 +540,7 @@ exit
 
         subprocess.Popen([bat],
                             creationflags= subprocess.CREATE_BREAKAWAY_FROM_JOB,
-                            startupinfo=None)
+                            startupinfo=startupinfo)
 
     else:
         receivedMessage["status"] = "error"
@@ -556,7 +555,7 @@ exit
 
 
 def GetVersion(receivedMessage):
-    receivedMessage["version"] = "1.7.4"
+    receivedMessage["version"] = "1.7.5"
     sendMessage(encodeMessage(receivedMessage))
 
         

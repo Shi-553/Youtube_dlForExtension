@@ -1,6 +1,7 @@
 ﻿from distutils.core import setup
 import py2exe
 import sys
+import tkinter
 
 script =[ sys.argv.pop(2)]
 bf = sys.argv.pop(2)
@@ -14,7 +15,8 @@ options = {
 }
 
 if cw == "w":
-    setup(options=options,
+    setup(
+        options=options,
         zipfile=None,
         windows=script
         )

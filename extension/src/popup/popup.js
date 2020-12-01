@@ -4,12 +4,21 @@ const main = async () => {
 
     const ul = document.getElementById("list");
 
-    let item = null, progresss = null;
+    let item = null, progresss = null, mediaUrls=[];
+    let activeUrl = "";
 
     //�o�b�N�O���E���h����
     port.onMessage.addListener(e => {
         //console.log(e);
         const m = e.body;
+
+        if (m.activeUrl != null) {
+            activeUrl = m.activeUrl;
+        }
+        if (m.mediaUrls != null) {
+            mediaUrls = m.mediaUrls;
+            SetMediaUrls();
+        }
 
         if (m.progresss != null) {
             progresss = m.progresss;
@@ -20,6 +29,9 @@ const main = async () => {
         }
 
         if (m.item != null) {
+            if (activeUrl != m.url) {
+                return;
+            }
             item = m.item;
             if (!switchItemProgressFlag)
                 SetItem();
@@ -33,10 +45,46 @@ const main = async () => {
     });
 
     //オプションページに飛ぶ
+    document.getElementById("clearMedia").addEventListener("click", () => {
+        mediaUrls.length = 1;
+        SetMediaUrls();
+
+        const message = {
+            clearMedia: true
+        };
+        myscript.PostMessage(port, message);
+    });
     document.getElementById("toOption").addEventListener("click", () => {
         browser.runtime.openOptionsPage();
         close();
     });
+
+    const sendMediaSelect = document.getElementById("sendMediaSelect");
+
+    sendMediaSelect.addEventListener("change",e => {
+        const selectUrl = sendMediaSelect.value;
+        activeUrl = selectUrl;
+        GetJson(selectUrl);
+    });
+
+    const AddSendMediaOption = (url) => {
+        if (typeof url != "string") {
+            console.log("worning not string",url);
+            return;
+        }
+        const option = document.createElement("option");
+        option.value = url;
+        option.textContent = url.match(/\/([^/]+?)\/?(?:\?.*?)?$/)[1];
+        sendMediaSelect.add(option);
+    }
+    const SetMediaUrls = () => {
+        console.log(mediaUrls);
+        sendMediaSelect.innerHTML = "";
+        for (let url of mediaUrls) {
+            AddSendMediaOption(url);
+        }
+
+    }
 
     const SetItem = async () => {
         document.getElementById("headItem").style.display = "block";
@@ -72,31 +120,31 @@ const main = async () => {
         newItem.style.width = "360px";
         newItem.className = "item";
 
-        const revert = document.createElement("input");
-        revert.className = "revert";
-        revert.type = "button";
-        revert.value = "Revert to Filename option";
-        newItem.appendChild(revert);
+        //const revert = document.createElement("input");
+        //revert.className = "revert";
+        //revert.type = "button";
+        //revert.value = "Revert to Filename option";
+        //newItem.appendChild(revert);
 
 
-        const labelAddO = document.createElement("label");
-        newItem.appendChild(labelAddO);
+        //const labelAddO = document.createElement("label");
+        //newItem.appendChild(labelAddO);
 
-        const addO = document.createElement("input");
-        addO.className = "addO";
-        addO.type = "checkbox";
-        addO.checked = true;
-        labelAddO.appendChild(addO);
+        //const addO = document.createElement("input");
+        //addO.className = "addO";
+        //addO.type = "checkbox";
+        //addO.checked = true;
+        //labelAddO.appendChild(addO);
 
-        const textAddO = document.createElement("span");
-        textAddO.style.fontSize = "90%";
-        textAddO.textContent = "Add '-o'";
-        labelAddO.appendChild(textAddO);
+        //const textAddO = document.createElement("span");
+        //textAddO.style.fontSize = "90%";
+        //textAddO.textContent = "Add '-o'";
+        //labelAddO.appendChild(textAddO);
         //
 
-        const filename = document.createElement("textarea");
+        const filename = document.createElement("input");
         filename.className = "filename";
-        filename.textContent = item._filename;
+        filename.value = item._filename;
         newItem.appendChild(filename);
 
         const detail = document.createElement("span");
@@ -229,28 +277,30 @@ const main = async () => {
         ul.appendChild(newItem);
 
 
-        filename.style.border = "1.5px solid blue";
-        filename.addEventListener("change", e => item._filename = e.target.value);
+        //filename.style.border = "1px solid  rgba(0, 0, 255,0.5)";
+        //filename.style.padding = "3px";
+        //filename.style.fontSize = "90%";
+        //filename.addEventListener("change", e => item._filename = e.target.value);
 
-        revert.addEventListener("click", () => {
-            ul.getElementsByClassName("addO")[0].checked = false;
-            filename.style.border = "";
-            filename.value = item.option != null ? item.option : "";
-            item._filename = item.option != null ? item.option : "";
-        });
+        //revert.addEventListener("click", () => {
+        //    ul.getElementsByClassName("addO")[0].checked = false;
+        //    filename.style.border = "";
+        //    filename.value = item.option != null ? item.option : "";
+        //    item._filename = item.option != null ? item.option : "";
+        //});
 
         const format_ids = ul.getElementsByClassName("format_id");
         for (let format_id of format_ids) {
             format_id.addEventListener("click", e => { ul.getElementsByClassName("inputSelectFormat")[0].value += ((format_id.classList.contains("video")) ? (format_id.value + "+") : format_id.value); });
         }
 
-        addO.addEventListener("change", () => {
-            if (addO.checked) {
-                filename.style.border = "1.5px solid blue";
-            } else {
-                filename.style.border = "";
-            }
-        })
+        //addO.addEventListener("change", () => {
+        //    if (addO.checked) {
+        //        filename.style.border = "1px solid  rgba(0, 0, 255,0.5)";
+        //    } else {
+        //        filename.style.border = "";
+        //    }
+        //})
     }
 
     const SetProgress = () => {
@@ -301,7 +351,7 @@ const main = async () => {
 
             const progress = document.createElement("progress");
             progress.max = 100;
-            progress.value = p.percent != null ? p.percent : 0;
+            progress.value = p.percent != null && !isNaN(p.percent) ? p.percent : 0;
             progress.style.width = "80%";
             flexBoxParent.appendChild(progress);
 
@@ -322,7 +372,21 @@ const main = async () => {
             textInfo.style.fontSize = "90%";
             newItem.appendChild(textInfo);
             if (p.isDownloading == "Download") {
-                textInfo.textContent = `${p.percent}% of ${p.size} at ${p.speed} ETA ${p.ETA}`;
+                if (p.percent != undefined) {
+                    textInfo.textContent = `${p.percent}%`;
+                } else {
+                    textInfo.textContent = `0%`;
+                }
+
+                if (p.size != undefined) {
+                    textInfo.textContent += ` of ${p.size}`;
+                }
+                if (p.speed != undefined) {
+                    textInfo.textContent += ` at ${p.speed}`;
+                }
+                if (p.ETA != undefined) {
+                    textInfo.textContent += ` ETA ${p.ETA}`;
+                }
             } else {
                 textInfo.textContent = p.isDownloading;
 
@@ -357,7 +421,8 @@ const main = async () => {
         // console.log(url)
         myscript.PostMessage(port, {
             key: selectPreset.value,
-            filename: ul.getElementsByClassName("addO")[0].checked ? "-o \"" + filename + "\"" : filename,
+            //filename: ul.getElementsByClassName("addO")[0].checked ? "-o \"" + filename + "\"" : filename,
+            filename: "-o \"" + filename + "\"",
             url: item.url,
             isDownload: true,
             json: item,
@@ -389,8 +454,7 @@ const main = async () => {
         temporarySelectedPreset: selectPreset.value
     });
 
-    const GetJson = (isCacheRefresh) => {
-        const url = item != null ? item.url : null;
+    const GetJson = (url,isCacheRefresh) => {
         //console.log(item);
         const message = {
             isGetJson: true,
@@ -406,7 +470,7 @@ const main = async () => {
         await browser.storage.local.set({
             temporarySelectedPreset: selectPreset.value
         });
-        GetJson(false);
+        GetJson(item != null ? item.url : null, false);
     });
     //�Z�[�u�v���Z�b�g�N���b�N
     saveSelectedPreset.addEventListener("click", () => {
@@ -418,9 +482,12 @@ const main = async () => {
     document.getElementById("stopDownload").addEventListener("click", () => {
         myscript.PostMessage(port, { isStopDownloadAll: true });
     });
+    document.getElementById("progressRefresh").addEventListener("click", () => {
+        myscript.PostMessage(port, { isStopDownloadAll: true,isProgressRefresh:true });
+    });
     //�L���b�V���N���A�[�N���b�N
     document.getElementById("cacheRefresh").addEventListener("click", () => {
-        GetJson(true);
+        GetJson(item != null ? item.url : null,true);
         ul.innerHTML = "";
     });
     document.getElementById("toReview").addEventListener("click", () => {
@@ -430,7 +497,7 @@ const main = async () => {
         close();
     });
     document.getElementById("switch").addEventListener("click", () => {
-        console.log(item);
+        //console.log(item);
         ul.textContent = "";
         switchItemProgressFlag = !switchItemProgressFlag;
 
@@ -452,7 +519,7 @@ let port;
 window.addEventListener("DOMContentLoaded", async () => {
     port = browser.runtime.connect("Youtube_dlForExtension@SHi", { name: "popup" });
 
-    console.log("port");
+    //console.log("port");
 
     const onMessage = e => {
         if (e.body == "Init") {
@@ -464,7 +531,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("main").style.display = "block";
 
             port.onMessage.removeListener(onMessage);
-            console.log("main");
+            //console.log("main");
             main();
 
         }

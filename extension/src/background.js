@@ -76,7 +76,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
     const notificationIds = {};
     //通知クリックでディレクトリ開く
     browser.notifications.onClicked.addListener(async id => {
-        // console.log(id)
+        // //console.log(id)
         if (id == "FailUpdateYoutube_dlForExtension") {
             browser.tabs.create({
                 active: true,
@@ -112,7 +112,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
     });
 
     const ReceiveShowDirectory = (res, port) => {
-        console.log(res);
+        //console.log(res);
     }
 
 
@@ -137,7 +137,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
 
     const versionRes = await fetch(`${versionApiEndPoint}?extensionVersion=${extensionVersion}`);
     const nativeVersionApiData = await versionRes.text();
-    console.log(nativeVersionApiData);
+    //console.log(nativeVersionApiData);
 
 
     const IsNeedUpdate = (now, api) => {
@@ -157,7 +157,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
 
     //アップデートが必要なら更新
     if (IsNeedUpdate(nowNativeVersion, nativeVersionApiData)) {
-        console.log(nowNativeVersion);
+        //console.log(nowNativeVersion);
 
         const updateRes = await SendNativePromise("Update", {}, true);
         await myscript.Sleep(3000);
@@ -173,7 +173,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
                 i++;
             }
         }
-        console.log(getAfterVersionRes.version);
+        //console.log(getAfterVersionRes.version);
         if (updateRes == null || getAfterVersionRes == null || nowNativeVersion == getAfterVersionRes.version) {
             browser.notifications.create("FailUpdateYoutube_dlForExtension", {
                 type: "basic",
@@ -190,7 +190,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             });
         }
     } else {
-        console.log("Native programs is the Latest version! " + nativeVersionApiData);
+        //console.log("Native programs is the Latest version! " + nativeVersionApiData);
     }
 
 
@@ -276,7 +276,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
     //youtube-dlの更新
     if (option.isYoutube_dlAutoUpdate) {
         const r = await SendNativePromise("UpdateYoutube_dl", { youtube_dlUpdateCommand: option.youtube_dlUpdateCommand }, true);
-        console.log(r);
+        //console.log(r);
 
         if (/Updated youtube-dl/.test(r.stdout)) {
             browser.notifications.create("UpdateYoutube_dl", {
@@ -337,7 +337,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
         if (m.isStopDownloadAll) {
             const reDownloadStr = ReceiveDownload.name.toString();
             for (let key of Object.keys(ports[reDownloadStr])) {
-                console.log("StopDownload " + key);
+                //console.log("StopDownload " + key);
                 if (ports[reDownloadStr][key].port != null) {
                     ports[reDownloadStr][key].port.disconnect();
                     SendNativePromise("RemoveJson", ports[reDownloadStr][key].message);
@@ -350,6 +350,9 @@ browser.runtime.onInstalled.addListener(SetTemporary);
                     progresss[key].isDownloading = "Stop";
                     stopDownloadStr += progresss[key].filePath + "\n";
                 }
+            }
+            if (m.isProgressRefresh) {
+                progresss = {};
             }
 
             const all = await browser.notifications.getAll();
@@ -419,15 +422,26 @@ browser.runtime.onInstalled.addListener(SetTemporary);
 
         }
 
+        if (m.clearMedia) {
+            const activeTab = (await browser.tabs.query({ currentWindow: true, active: true }))[0];
+
+            mediaUrls[activeTab.url].length = 1;
+        }
+
 
         if (m.isOpen) {
             isPopupOpen = true;
             //console.log(progresss);
             SendProccess(id);
-            GetJson();
+            GetJson(null, m.url);
+            const activeTab = (await browser.tabs.query({ currentWindow: true, active: true }))[0];
 
+            if (mediaUrls[activeTab.url] == null) {
+                mediaUrls[activeTab.url] = [];
+                mediaUrls[activeTab.url].push(activeTab.url);
+            }
+            myscript.PostMessage(popupPort, { activeUrl: activeTab.url, mediaUrls: mediaUrls[activeTab.url] }, { id: id });
         }
-
 
         if (m.isDownload) {
             DownloadPrepare(m);
@@ -484,6 +498,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
 
         const selectedKey = selectedPreset.key;
 
+
         if (url == null)
             url = activeTab.url;
         if (tabId == null)
@@ -491,7 +506,8 @@ browser.runtime.onInstalled.addListener(SetTemporary);
         if (key == null)
             key = selectedKey;
 
-        const tabUrl = (await browser.tabs.get(tabId).catch(() => { return {}; })).url;
+        //const tabUrl = (await browser.tabs.get(tabId).catch(() => { return {}; })).url;
+        //console.log(tabId);
 
         const preset = myscript.GetPreset(option, key);
         if (preset.isShareJson == null)
@@ -518,10 +534,10 @@ browser.runtime.onInstalled.addListener(SetTemporary);
 
         //キャッシュクリア
         if (isCacheRefresh) {
-            if (tabUrl == url) {
-                myscript.UpdateBrowserActionIcon(false, tabId);
-            }
-            console.log("CacheRefresh " + url);
+            // if (tabUrl == url) {
+            myscript.UpdateBrowserActionIcon(false, tabId);
+            // }
+            //console.log("CacheRefresh " + url);
             cache[url] = { "options": {} };
 
             const str = ReceiveGetJson.name.toString();
@@ -536,10 +552,10 @@ browser.runtime.onInstalled.addListener(SetTemporary);
         if ((cache[url].json === "Getting" && preset.isShareJson) || cache[url]["options"][key] === "Getting") {
             if (!isPopupOpen)
                 return;
-            if (selectedKey == key && activeTab.id == tabId && activeTab.url == url) {
-                myscript.PostMessage(popupPort, { item: "Getting" });
+            if (selectedKey == key && activeTab.id == tabId/* && activeTab.url == url*/) {
+                myscript.PostMessage(popupPort, { item: "Getting", url: url });
             }
-            console.log("Getting");
+            //console.log("Getting");
             return;
         }
 
@@ -547,39 +563,39 @@ browser.runtime.onInstalled.addListener(SetTemporary);
         if ((cache[url].json == "NotFound" && preset.isShareJson) || cache[url]["options"][key] == "NotFound") {
             if (!isPopupOpen)
                 return;
-            if (selectedKey == key && activeTab.id == tabId && activeTab.url == url) {
-                myscript.PostMessage(popupPort, { item: "NotFound" });
+            if (selectedKey == key && activeTab.id == tabId /*&& activeTab.url == url*/) {
+                myscript.PostMessage(popupPort, { item: "NotFound", url: url });
             }
-            console.log("NotFound");
+            //console.log("NotFound");
             return;
         }
 
         //そのオプションのjsonがまるまるあるとき
         if (cache[url]["options"][key] != null) {
-            console.log("Hit Cache");
+            //console.log("Hit Cache");
 
-            if (tabUrl == url) {
-                myscript.UpdateBrowserActionIcon(true, tabId);
-            }
-            console.log(selectedKey);
-            if (isPopupOpen && selectedKey == key && activeTab.id == tabId && activeTab.url == url) {
-                // console.log(cache);
+            // if (tabUrl == url) {
+            myscript.UpdateBrowserActionIcon(true, tabId);
+            // }
+            //console.log(selectedKey);
+            if (isPopupOpen && selectedKey == key && activeTab.id == tabId /*&& activeTab.url == url*/) {
+                // //console.log(cache);
                 const item = cache[url]["options"][key];
                 item.tabId = tabId;
                 item.key = key;
                 item.isF = isF;
-                myscript.PostMessage(popupPort, { item: item });
+                myscript.PostMessage(popupPort, { item: item, url: url });
             }
 
-            if (tabUrl != url)
-                return;
+            //if (tabUrl != url)
+            //    return;
 
             for (let k of Object.keys(option.preset)) {
                 if (k == key) {
                     continue;
                 }
                 if (cache[url]["options"][k] == null) {
-                    console.log("getjson other option hit: " + k);
+                    //console.log("getjson other option hit: " + k);
 
                     if (await GetJson(tabId, url, k)) {
                         const p = myscript.GetPreset(option, k);
@@ -594,10 +610,10 @@ browser.runtime.onInstalled.addListener(SetTemporary);
         //オプションのjsonはとってないとき
         if (cache[url].json != null && preset.isShareJson) {
             if (isPopupOpen && selectedKey == key && activeTab.id == tabId && activeTab.url == url) {
-                myscript.PostMessage(popupPort, { item: "Getting" });
+                myscript.PostMessage(popupPort, { item: "Getting", url: url });
             }
             //console.log(cache);
-            console.log("Yes json");
+            //console.log("Yes json");
             cache[url]["options"][key] = "Getting";
 
             SendNative("To_Youtube_dl", ReceiveGetJson, {
@@ -611,11 +627,11 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             return;
         }
 
-        if (isPopupOpen && selectedKey == key && url == url && tabId == activeTab.id) {
-            myscript.PostMessage(popupPort, { item: "Getting" });
+        if (isPopupOpen && selectedKey == key /*&& url == url */ && tabId == activeTab.id) {
+            myscript.PostMessage(popupPort, { item: "Getting", url: url });
         }
         //jsonがないとき
-        console.log("No Cache");
+        //console.log("No Cache");
         if (preset.isShareJson) {
             cache[url].json = "Getting";
         }
@@ -636,7 +652,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
 
     const cache = {};
     const ReceiveGetJson = async (res, port) => {
-        console.log(res);
+        //console.log(res);
 
         if (res.status != "finished")
             return;
@@ -662,16 +678,16 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             preset.isShareJson = true;
         }
 
-        console.log(key);
+        //console.log(key);
         //console.log(preset);
 
-        const urll = (await browser.tabs.get(res.tabId).catch(() => { return {}; })).url;
+        const urll = res.tabId == -1 ? "" : (await browser.tabs.get(res.tabId).catch(() => { return {}; })).url;
 
         if (urll == res.url) {
             myscript.UpdateBrowserActionIcon(res.returnJson != null, res.tabId);
         }
         if (res.returnJson == null) {
-            console.log("NotFound");
+            //console.log("NotFound");
 
             if (cache[res.url].json == "Getting" && preset.isShareJson)
                 cache[res.url].json = "NotFound";
@@ -680,11 +696,11 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             cache[res.url]["options"][res.key] = "NotFound";
             // if (/ERROR:(.+? is not a valid URL.)|(Unsupported URL)/.test(res.stdout)) {
             if (isPopupOpen && res.key == key && activeTab.url == res.url && activeTab.id == res.tabId) {
-                myscript.PostMessage(popupPort, { item: "NotFound" });
+                myscript.PostMessage(popupPort, { item: "NotFound", url: res.url });
             }
             // }
         } else {
-            console.log("Success");
+            //console.log("Success");
 
             const item = res.returnJson;
             item.key = res.key;
@@ -697,9 +713,9 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             }
             cache[res.url]["options"][res.key] = item;
 
-            if (res.key == key && activeTab.url == res.url && activeTab.id == res.tabId) {
+            if (res.key == key /*&& activeTab.url == res.url*/ && activeTab.id == res.tabId) {
                 if (isPopupOpen) {
-                    myscript.PostMessage(popupPort, { item: item });
+                    myscript.PostMessage(popupPort, { item: item, url: res.url });
                 }
             }
         }
@@ -712,7 +728,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
                     continue;
                 }
                 if (cache[res.url]["options"][k] == null) {
-                    console.log("getjson other option finish: " + k);
+                    //console.log("getjson other option finish: " + k);
 
                     if (await GetJson(res.tabId, res.url, k)) {
                         const p = myscript.GetPreset(option, k);
@@ -772,8 +788,8 @@ browser.runtime.onInstalled.addListener(SetTemporary);
                 dir = option.subDownloadDirectory;
         }
 
- //--load-info-json "<JSONPATH>"
-        const code = `youtube-dl --no-playlist ${e.selectFormat != null ? "-f " + e.selectFormat : ""} ${e.filename} ${outputOption} ${selectedPreset.option} --newline "${e.url}"`;
+        //--load-info-json "<JSONPATH>"
+        const code = `youtube-dl --no-playlist ${e.selectFormat != null ? "-f " + e.selectFormat : ""}  ${e.filename} ${outputOption} ${selectedPreset.option} --newline "${e.url}"`;
 
 
         const messageToSend = {
@@ -789,7 +805,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
 
         //--load-info-json "<JSONPATH>"
         SendNative("To_Youtube_dl", ReceiveDownloadPrepare, {
-            command: `youtube-dl --no-playlist -j  ${outputOption}`,
+            command: `youtube-dl --no-playlist -j ${outputOption}`,
             url: e.url,
             domain: e.url.split('/')[2],
             json: e.json,
@@ -800,7 +816,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
     }
 
     const ReceiveDownloadPrepare = async (res, port) => {
-        console.log(res);
+        //console.log(res);
         if (res.status != "finished")
             return;
         let json = res.returnJson;
@@ -843,7 +859,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
         }
     }
 
-    const progresss = {};
+    let progresss = {};
     let waitProgress = [];
 
     const GetDownloadProgressCount = () => {
@@ -874,32 +890,85 @@ browser.runtime.onInstalled.addListener(SetTemporary);
     }
 
     const downloadMatchReg = /^\[download\]\s+(.+?)%\s+of\s+(.+?)\s+at\s+(.+?)\s+ETA\s+(.+)$/;
+    //undefined% of undefined at undefined ETA undefined
+    //21.1% of 9.47MiB at 18.41MiB/s ETA 00:00
+
+    const downloadM3u8DurationMatchReg = /^\s*Duration:\s*([^,]+),/;
+    const downloadM3u8MatchReg = /frame=.+?fps=.+?q=.+?size=.+?time=(\S+)/;
+    // Duration: 00:02:13.65, start: 1.000000, bitrate: 0 kb/s
+
+    //"frame= 2340 fps=216 q=-1.0 size=    4096kB time=00:01:18.01 bitrate= 430.1kbits/s speed=7.21x    \r[https @ 000002cae2f7c080] Opening 'ここURL' for reading"
+    //"frame= 2520 fps=210 q=-1.0 size=    4352kB time=00:01:24.00 bitrate= 424.4kbits/s speed=7.01x    \r[https @ 000002cae2d5a0c0] Opening 'ここURL' for reading"
+
+    //00:01:24.00 -> 84
+    const StringToSecond = (str) => {
+        return str
+            .replace(/\.\d\d$/, "")
+            .split(":")
+            .map(s => Number(s))
+            .reverse()
+            .reduce((acc, cur, idx) => acc + cur * (60 ** idx));
+    }
 
     const ReceiveDownload = async (res, port) => {
-        //console.log(res);
-        if (res.status != "Progress") {
-        }
+        //console.log(res.stdout);
+        //if (res.status != "Progress") {
+        //}
 
+        if (res.status == "Progress") {
+            if (downloadMatchReg.test(res.stdout)) {
+                //console.log(res.stdout);
+                const matchs = res.stdout.match(downloadMatchReg);
 
-        if (res.status == "Progress" && downloadMatchReg.test(res.stdout)) {
-            //console.log(res.stdout);
-            const matchs = res.stdout.match(downloadMatchReg);
+                progresss[res.url + res.key] = {
+                    url: res.url,
+                    key: res.key,
+                    filePath: res.filePath,
+                    messageToSend: res.messageToSend,
+                    json: res.json,
+                    domain: res.domain,
+                    isDownloading: "Download",
+                    percent: parseFloat(matchs[1]),
+                    size: matchs[2],
+                    speed: matchs[3],
+                    ETA: matchs[4]
+                };
+                if (isPopupOpen) {
+                    SendProccess();
+                }
+            }
 
-            progresss[res.url + res.key] = {
-                url: res.url,
-                key: res.key,
-                filePath: res.filePath,
-                messageToSend: res.messageToSend,
-                json: res.json,
-                domain: res.domain,
-                isDownloading: "Download",
-                percent: parseFloat(matchs[1]),
-                size: matchs[2],
-                speed: matchs[3],
-                ETA: matchs[4]
-            };
-            if (isPopupOpen) {
-                SendProccess();
+            if (downloadM3u8DurationMatchReg.test(res.stdout)) {
+                const duration = res.stdout.match(downloadM3u8DurationMatchReg)[1];
+
+                progresss[res.url + res.key] = {
+                    url: res.url,
+                    key: res.key,
+                    filePath: res.filePath,
+                    messageToSend: res.messageToSend,
+                    json: res.json,
+                    domain: res.domain,
+                    isDownloading: "Download",
+                    percent: 0,
+                    size: "0",
+                    speed: undefined,
+                    ETA: undefined,
+                    duration: StringToSecond(duration)
+                };
+                if (isPopupOpen) {
+                    SendProccess();
+                }
+
+            }
+            if (downloadM3u8MatchReg.test(res.stdout)) {
+                //console.log(res.stdout);
+                const time = res.stdout.match(downloadM3u8MatchReg)[1];
+
+                progresss[res.url + res.key].percent = Math.round((StringToSecond(time) / progresss[res.url + res.key].duration) * 100);
+                progresss[res.url + res.key].size = time.replace(/\.\d\d$/, "");
+                if (isPopupOpen) {
+                    SendProccess();
+                }
             }
             return;
         }
@@ -915,8 +984,8 @@ browser.runtime.onInstalled.addListener(SetTemporary);
                     if (res.prevPercent == null)
                         res.prevPercent = 0;
 
-                    console.log(res.prevPercent);
-                    console.log(percent);
+                    //console.log(res.prevPercent);
+                    //console.log(percent);
 
                     if (res.prevPercent < percent) {
                         res.messageToSend.prevPercent = percent;
@@ -957,7 +1026,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
                 SendNative("To_Youtube_dl", ReceiveDownload, waitingProgres.messageToSend);
 
             }
-            console.log("endDownloading");
+            //console.log("endDownloading");
             if (isPopupOpen) {
                 SendProccess();
             }
@@ -984,7 +1053,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
         }
 
         if (res.status == "finished") {
-
+            //console.log(res);
             if (res.returncode == 0) {
                 NoticeDownloadStatus(res, true, "Successful download", res.filePath);
             }
@@ -1038,7 +1107,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             const message = {
                 initialDir: initialDir
             };
-            // console.log(message);
+            // //console.log(message);
             const res = await SendNativePromise("DirectoryManager", message);
             if (res.status == "success") {
                 return resolve(res.dir);
@@ -1088,7 +1157,7 @@ browser.runtime.onInstalled.addListener(SetTemporary);
                 name: toSendName,
                 value: message
             });
-            // console.log(ports);
+            // //console.log(ports);
         } catch (e) {
             console.error(e);
             browser.notifications.create({
@@ -1103,22 +1172,22 @@ browser.runtime.onInstalled.addListener(SetTemporary);
 
 
     let getjsonInterval = false;
-    let listener = null;
+    let tabListener = null;
     //自動読み込みリスナーを再設定
     const UpdateTabListener = async () => {
         const option = await browser.storage.local.get();
 
-        if (listener != null && browser.tabs.onUpdated.hasListener(listener))
-            browser.tabs.onUpdated.removeListener(listener);
+        if (tabListener != null && browser.tabs.onUpdated.hasListener(tabListener))
+            browser.tabs.onUpdated.removeListener(tabListener);
 
-        listener = async (tabId, changeInfo, tab) => {
+        tabListener = async (tabId, changeInfo, tab) => {
             if (changeInfo.url != null) {
-                console.log(changeInfo);
+                //console.log(changeInfo);
                 while (getjsonInterval)
                     await myscript.Sleep(1000);
 
                 getjsonInterval = true;
-                console.log("listener");
+                //console.log("listener");
                 await GetJson(tab.id, tab.url);
                 await myscript.Sleep(1000);
                 getjsonInterval = false;
@@ -1129,13 +1198,88 @@ browser.runtime.onInstalled.addListener(SetTemporary);
             return;
 
 
-        browser.tabs.onUpdated.addListener(listener, {
+        browser.tabs.onUpdated.addListener(tabListener, {
             urls: option.urls,
             properties: ["status"]
         });
     }
-
     UpdateTabListener();
 
+
+
+    const mediaUrls = {};
+
+    const playlistUrlMatchs = [
+        "*://*/*.m3u8*",
+        "*://*/*.mpd*",
+        "*://*/*.f4m*",
+        "*://*/*.ism*",
+        "*://*/*.vtt*",
+
+        "*://*/*.mp4*",
+        "*://*/*.avi*",
+        "*://*/*.mov*",
+        "*://*/*.wmv*",
+        "*://*/*.flv*",
+        "*://*/*.mpg*",
+        "*://*/*.mkv*",
+        "*://*/*.ts*",
+        "*://*/*.qt*",
+        "*://*/*.asf*",
+        "*://*/*.mpeg*",
+        "*://*/*.m4a*",
+        "*://*/*.asf*",
+        "*://*/*.webm*",
+        "*://*/*.ogm*",
+
+        "*://*/*.wav*",
+        "*://*/*.wave*",
+        "*://*/*.aif*",
+        "*://*/*.aiff*",
+        "*://*/*.aifc*",
+        "*://*/*.mp3*",
+        "*://*/*.aac*",
+        "*://*/*.flac*",
+
+        "*://*/*.iff*",
+        "*://*/*.lso*",
+        "*://*/*.mid*",
+        "*://*/*.midi*",
+        "*://*/*.msf*",
+        "*://*/*.wma*",
+        "*://*/*.ogg*",
+        "*://*/*.oga*",
+        "*://*/*.alac*",
+        "*://*/*.tta*",
+        "*://*/*.mka*",
+    ];
+
+    const addList = async (details) => {
+        if (details.url != null) {
+            const p = await Promise.all([
+                browser.tabs.query({ currentWindow: true, active: true }),
+                 browser.tabs.get(details.tabId)]);
+            const activeTab = p[0][0];
+            const tab =p[1] ;
+            if (mediaUrls[tab.url] == null) {
+                mediaUrls[tab.url] = [];
+                mediaUrls[tab.url].push(activeTab.url);
+            }
+            mediaUrls[tab.url].push(details.url);
+
+            if (isPopupOpen && activeTab.id == details.tabId) {
+                myscript.PostMessage(popupPort, { mediaUrls: mediaUrls[tab.url] });
+            }
+
+            //console.log(mediaUrls);
+        }
+    };
+    browser.webRequest.onBeforeRequest.addListener(
+        addList,
+        {
+            urls: playlistUrlMatchs
+        },
+        ["requestBody"]
+    );
 
 })()

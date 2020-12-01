@@ -1,7 +1,9 @@
 
 .filename {
     margin-left: 3px;
-    width: 95%;
+    width: 100%;
+    margin: 10px;
+   /* padding: 10px;*/
 }
 
 .outExtension {
@@ -51,7 +53,6 @@
 }
 
 #headItem {
-    height: 30px;
 }
 
 #main {
@@ -86,7 +87,7 @@
     max-width: 500px;
     min-width: 430px;
     padding: 0;
-    margin-top: 15px;
+    margin-top: 5px;
     margin-bottom: 0;
     list-style: none;
     background-color: rgba(255, 255, 255,0.5);
@@ -127,6 +128,9 @@
 
 body {
     overflow-x: hidden;
+    border: 0px;
+    padding:10px;
+    margin:0px;
 }
 
 html {
@@ -135,7 +139,7 @@ html {
     /* background-blend-mode: screen;
      background-image: url("371deb003797fc1e75c0af01f9553ceb.jpg");
      background-color: rgba(255, 255, 255,0.5);*/
-    border: 2px solid Gray;
+    border: 0px;
 }
 
 header {
@@ -222,23 +226,46 @@ textarea {
     max-width: 400px;
     min-width: 380px;
     background-color: rgba(255, 255, 255,0.8);
+    display: block;
+    margin: 10px;
+    padding: 10px;
 }
 select{
     background-color: rgba(255, 255, 255,0.8);
 }
+#headMediaSelect {
+    margin-top: 5px;
+    margin-bottom: 0px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+#sendMediaSelect {
+   height:25px;/*
+    margin-bottom: 15px;
+    padding-bottom: 15px;*/
+}
+#headProgress {
+    height: 30px;
+}
+#progressRefresh {
+    margin-left:30px;
+}
 button,
 input[type=button],
-input[type=checkbox] ,
+input[type=checkbox],
 select,
 label {
     cursor: pointer
 }
 @media (prefers-color-scheme: dark) {
-    :root{
-        background-color: #efefef ;
+    :root {
+        background-color: #efefef;
         filter: invert(90%) !important;
+        scrollbar-color: #17181a #727274;
+        
     }
+    
     #toReview {
         filter: invert(100%) !important;
     }
-    }
+}

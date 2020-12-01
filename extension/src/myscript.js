@@ -1,13 +1,12 @@
 
-const myscript = {};
-(() => {
-    myscript.PostMessage = async (port, message = {}, option = {}) => {
+const myscript =  {
+    PostMessage : async (port, message = {}, option = {}) => {
         if (port == null) {
-            console.error("port null");
+            //console.error("port null");
             return;
         }
 
-        console.log(message, option);
+        //console.log(message, option);
 
         if (option.usePromise) {
             option.id = JSON.stringify(message);
@@ -26,14 +25,14 @@ const myscript = {};
         } else {
             port.postMessage({ id: option.id, body: message, name: port.name });
         }
-    }
+    },
 
 
-    myscript.Sleep = (waitMilliseconds) => {
+    Sleep : (waitMilliseconds) => {
         return new Promise(resolve => setTimeout(resolve, waitMilliseconds));
-    }
+    },
 
-    myscript.UpdateBrowserActionIcon = (sw, tabId) => {
+    UpdateBrowserActionIcon : (sw, tabId) => {
         const enables = {
             16: "image/icon_enable16.png",
             32: "image/icon_enable32.png",
@@ -56,15 +55,15 @@ const myscript = {};
             else
                 browser.browserAction.setIcon({ path: disables, tabId: tabId });
         }
-    }
+    },
 
-    myscript.UpdateBadgeText = (str) => {
+    UpdateBadgeText : (str) => {
         if (str == null || str == "0")
             str = "";
         browser.browserAction.setBadgeText({ text: str });
-    }
+    },
 
-    myscript.GetPreset = (option, key) => {
+    GetPreset : (option, key) => {
         if (key == null)
             key = option.selectedPreset;
 
@@ -81,4 +80,4 @@ const myscript = {};
         s.key = key;
         return s;
     }
-})()
+}

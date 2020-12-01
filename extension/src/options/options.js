@@ -12,8 +12,8 @@ const main = () => {
         setOutputOption = document.getElementById("setOutputOption"),
         setFilenameOption = document.getElementById("setFilenameOption"),
         setOverwrite = document.getElementById("setOverwrite"),
-        setBackgroundImage = document.getElementById("setBackgroundImage"),
-        resetBackgroundImage = document.getElementById("resetBackgroundImage"),
+        //setBackgroundImage = document.getElementById("setBackgroundImage"),
+        //resetBackgroundImage = document.getElementById("resetBackgroundImage"),
         preview = document.getElementById("preview"),
         setSimultaneous = document.getElementById("setSimultaneous"),
         setHowToCount = document.getElementById("setHowToCount"),
@@ -56,7 +56,7 @@ const main = () => {
 
         setIsAutoRetry.checked = option.isAutoRetry;
 
-        setBackgroundImage.style.opacity = 0;
+        //setBackgroundImage.style.opacity = 0;
         if (option.backgroundImageFile != null)
             preview.textContent = option.backgroundImageFile.name;
 
@@ -138,20 +138,20 @@ const main = () => {
         await browser.storage.local.set({ backgroundImageFile: file });
 
     }
-    resetBackgroundImage.addEventListener("click", async () => {
-        preview.textContent = "";
-        await browser.storage.local.set({ backgroundImageFile: null });
-    });
-    setBackgroundImage.addEventListener("change", () => SaveBackgroundImage(setBackgroundImage.files[0]), false);
-    setBackgroundImage.addEventListener("dragenter", e => {
-        e.stopPropagation();
-        e.preventDefault();
-    }, false);
-    setBackgroundImage.addEventListener("dragover", e => {
-        e.stopPropagation();
-        e.preventDefault();
-    }, false);
-    setBackgroundImage.addEventListener("drop", e => SaveBackgroundImage(e.dataTransfer.files[0]), false);
+    //resetBackgroundImage.addEventListener("click", async () => {
+    //    preview.textContent = "";
+    //    await browser.storage.local.set({ backgroundImageFile: null });
+    //});
+    //setBackgroundImage.addEventListener("change", () => SaveBackgroundImage(setBackgroundImage.files[0]), false);
+    //setBackgroundImage.addEventListener("dragenter", e => {
+    //    e.stopPropagation();
+    //    e.preventDefault();
+    //}, false);
+    //setBackgroundImage.addEventListener("dragover", e => {
+    //    e.stopPropagation();
+    //    e.preventDefault();
+    //}, false);
+    //setBackgroundImage.addEventListener("drop", e => SaveBackgroundImage(e.dataTransfer.files[0]), false);
 
     setIsDisableHealthyNotification.addEventListener("change", () => {
         browser.storage.local.set({ isDisableHealthyNotification: setIsDisableHealthyNotification.checked });

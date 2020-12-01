@@ -24,7 +24,9 @@ Install instructions
 
 Save more high-quality videos(If you do not do this, you will not be able to download videos larger than 720p on YouTube.)
   1:Download ffmpeg build.
-    https://ffmpeg.zeranoe.com/builds/.
+    https://ffmpeg.org/download.html
+
+    Get packages & executable files->your OS link
 
   2:Unzip the downloaded zip.
 
