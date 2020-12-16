@@ -555,7 +555,7 @@ exit
 
 
 def GetVersion(receivedMessage):
-    receivedMessage["version"] = "1.7.5"
+    receivedMessage["version"] = "1.7.6"
     sendMessage(encodeMessage(receivedMessage))
 
         
@@ -566,13 +566,13 @@ def UpdateYoutube_dl(receivedMessage):
 
     #youtube-dlのexeがあれば更新確認
     if isFoundYoutube_dl():
-        proc = subprocess.run(["youtube-dl", "-U"],
+        proc = subprocess.run(["youtube-dl", "-U", "--no-check-certificate"],
                                     stdout = subprocess.PIPE,
                                     stderr = subprocess.STDOUT,
                                     startupinfo=startupinfo)
             
         receivedMessage["stdout"] = proc.stdout.decode(sys.stdout.encoding,errors="ignore")
-        receivedMessage["update"] = "youtube-dl -U"
+        receivedMessage["update"] = "youtube-dl -U --no-check-certificate"
         
     #youtube-dlのexeなくてこのファイルがexeならダウンロード
     elif myFilename == "Youtube_dlForExtension.exe":

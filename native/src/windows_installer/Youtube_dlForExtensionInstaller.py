@@ -11,6 +11,8 @@ import threading
 import admin
 import shutil
 import pathlib
+import re
+import json
 
 def selectDirectory(entry,nextBu):
     dirPath = filedialog.askdirectory(initialdir=entry.get())
@@ -106,22 +108,31 @@ def InstallYoutube_dl(installFolderPath,isFfmpeg,isDebug,callback):
         if isFfmpeg:
             callback({"message":"Download ffmpeg..."})
 
-            url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2020-11-09-12-46/ffmpeg-n4.3.1-25-g1936413eda-win64-lgpl-4.3.zip"
+            githubReleaseApiUrl="https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"
+            response = urllib.request.urlopen(githubReleaseApiUrl)
+            releaseJson = json.loads(response.read().decode('utf8'))
             
+            url=""
+            for asset in releaseJson["assets"]:
+                matched=re.search("win64-lgpl-\d.\d.zip", asset["name"])
+                if(matched):
+                    url=asset["browser_download_url"]
+                    break
+                
+            if(url!=""):
+                req = urllib.request.Request(url)
+                req.add_header("User-Agent", 'Mozilla/5.0')
 
-            req = urllib.request.Request(url)
-            req.add_header("User-Agent", 'Mozilla/5.0')
+                with urllib.request.urlopen(req) as res:
+                    with zipfile.ZipFile(BytesIO(res.read())) as zip:
+                        zip.extractall(cwd)
+                        list = zip.namelist()
+                        for x in list:
+                            if "ffmpeg.exe" in x:
+                                shutil.move(str(cwd / x),str(cwd / "ffmpeg.exe"))
 
-            with urllib.request.urlopen(req) as res:
-                with zipfile.ZipFile(BytesIO(res.read())) as zip:
-                    zip.extractall(cwd)
-                    list = zip.namelist()
-                    for x in list:
-                        if "ffmpeg.exe" in x:
-                            shutil.move(str(cwd / x),str(cwd / "ffmpeg.exe"))
-
-                        if "ffprobe.exe" in x:
-                            shutil.move(str(cwd / x),str(cwd / "ffprobe.exe"))
+                            if "ffprobe.exe" in x:
+                                shutil.move(str(cwd / x),str(cwd / "ffprobe.exe"))
 
     except Exception as err:
         callback({"error":True,"finish":True,"message":str(err)})
